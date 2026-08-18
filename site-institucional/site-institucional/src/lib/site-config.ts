@@ -5,7 +5,7 @@
 export const siteConfig = {
   name: "Digital Lens",
   legalName: "Digital Lens",
-  url: "https://digitallens.pt",
+  url:" https://digitallens.vercel.app/",
   description:
     "Agência digital: marketing digital, desenvolvimento web, soluções com IA, produção multimédia e locução — sob uma só lente.",
   locale: "pt_PT",
