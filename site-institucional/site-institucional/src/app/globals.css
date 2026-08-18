@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+/*
+  Design tokens — Consultoria/Agência
+  Paleta: Azul-tinta (autoridade/confiança) + Vermelho-sinal (ação/energia)
+  Ver rationale completo no DESIGN.md
+*/
+:root {
+  --color-ink-900: #0f1b2d;      /* azul-tinta profundo — texto, fundos escuros */
+  --color-ink-700: #1e3a5f;      /* azul principal da marca */
+  --color-ink-500: #4a7fa7;      /* azul claro — acentos secundários, links */
+  --color-signal-600: #b3272d;   /* vermelho-sinal — CTAs, destaques */
+  --color-signal-400: #e0555c;   /* vermelho claro — hover states */
+  --color-paper-50: #f7f5f1;     /* branco quente — fundo padrão */
+  --color-paper-100: #efece5;    /* fundo alternado de seção */
+  --color-neutral-600: #4b5563;  /* texto secundário */
+
+  --background: var(--color-paper-50);
+  --foreground: var(--color-ink-900);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-ink-900: var(--color-ink-900);
+  --color-ink-700: var(--color-ink-700);
+  --color-ink-500: var(--color-ink-500);
+  --color-signal-600: var(--color-signal-600);
+  --color-signal-400: var(--color-signal-400);
+  --color-paper-50: var(--color-paper-50);
+  --color-paper-100: var(--color-paper-100);
+  --color-neutral-600: var(--color-neutral-600);
+
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-plex-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Respeita preferência de movimento reduzido do usuário */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Foco visível para acessibilidade de teclado */
+:focus-visible {
+  outline: 2px solid var(--color-signal-600);
+  outline-offset: 2px;
+}
