@@ -6,6 +6,7 @@ import { stripe, isStripeConfigured } from "@/lib/stripe";
 import { isDatabaseConfigured } from "@/lib/db";
 import { createPendingOrder, type OrderItem } from "@/lib/db/queries";
 import { absoluteUrl, siteConfig } from "@/lib/site-config";
+import { rateLimit, rateLimitMessage } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -30,6 +31,15 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
+  // Criar sessões no Stripe custa dinheiro e quota — limitamos antes de tudo.
+  const limit = await rateLimit("checkout");
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: rateLimitMessage(limit.retryAfter) },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfter) } }
+    );
+  }
+
   if (!isStripeConfigured()) {
     return NextResponse.json(
       { error: "Pagamentos ainda não estão configurados. Contacte-nos para concluir o pedido." },

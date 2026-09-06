@@ -68,6 +68,7 @@ src/
     services.ts                 os 4 pilares e os 22 serviços
     products.ts                 catálogo e preços da loja
     cart-store.ts               store externo do carrinho (localStorage)
+    rate-limit.ts               rate limiting persistido em Postgres
     db/                         cliente Neon, consultas e schema.sql
     email.ts                    e-mails transacionais (Resend)
     stripe.ts                   cliente Stripe
@@ -226,9 +227,45 @@ para a navegação, o sitemap, o JSON-LD e as páginas de detalhe.
 - **Palavras-passe** — bcrypt custo 12; login com tempo de resposta constante
   para não revelar que e-mails existem.
 
-> **Antes de tráfego real:** adicionar *rate limiting* ao nível da
-> infraestrutura (Vercel Firewall ou Upstash Ratelimit). Um contador em memória
-> não sobrevive entre invocações serverless e daria falsa proteção.
+### Rate limiting
+
+Implementado em `src/lib/rate-limit.ts`, com o contador **persistido em
+Postgres** (tabela `rate_limits`). Em serverless cada invocação pode correr numa
+instância diferente, pelo que um contador em memória protegeria apenas contra o
+atacante distraído — o estado tem de viver fora do processo.
+
+| Acção | Limite | Janela |
+| --- | --- | --- |
+| Formulário de contacto | 5 | 1 hora |
+| Lista de espera | 5 | 1 hora |
+| Criação de conta | 5 | 1 hora |
+| Início de sessão | 10 | 15 minutos |
+| Checkout | 20 | 1 hora |
+
+Notas de desenho:
+
+- **Janela fixa**, não deslizante — no pior caso permite até 2× o limite na
+  fronteira entre janelas. Para formulários e autenticação é um compromisso
+  aceitável e custa uma única query; uma janela deslizante obrigaria a guardar
+  cada evento.
+- **UPSERT atómico** — o Postgres serializa as escritas sobre a mesma chave
+  primária, pelo que pedidos concorrentes nunca lêem o mesmo valor antes de
+  incrementar.
+- **O login tem dois baldes**: por IP e por IP+e-mail. Sem o segundo, um
+  atacante num IP partilhado (NAT móvel, rede empresarial) esgotaria o balde do
+  IP e bloquearia utilizadores legítimos.
+- **Falha aberta** — se a base de dados estiver indisponível, os pedidos passam.
+  Bloquear todos os formulários do site durante uma falha da base de dados
+  causaria mais prejuízo do que o abuso que evitaria.
+- **Identificação do cliente** por `x-vercel-forwarded-for` (definido pela
+  plataforma) com recurso a `x-forwarded-for`. Fora de um proxy, todos os
+  pedidos partilham o balde `anon` — restritivo de mais localmente, nunca
+  permissivo de mais em produção.
+- As linhas expiradas são apagadas oportunisticamente em ~2% das verificações,
+  o que dispensa um cron só para isso.
+
+> Sem `DATABASE_URL` o limitador cai para um contador em memória, apenas para
+> desenvolvimento local. Não é protecção de produção — e o código diz isso.
 
 ---
 

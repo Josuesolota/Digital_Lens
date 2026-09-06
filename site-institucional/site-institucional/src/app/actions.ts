@@ -8,6 +8,7 @@ import {
   sendContactNotification,
   sendNewsletterConfirmation,
 } from "@/lib/email";
+import { rateLimit, rateLimitMessage } from "@/lib/rate-limit";
 
 /**
  * Server Actions públicas (contacto e lista de espera).
@@ -16,9 +17,9 @@ import {
  * e só depois enviada por e-mail. Se o Resend falhar, o pedido do cliente não
  * se perde — fica em `contact_messages`.
  *
- * NOTA DE SEGURANÇA — antes de tráfego real, adicionar rate limiting ao nível
- * da infraestrutura (Vercel Firewall ou Upstash Ratelimit). Um contador em
- * memória não sobrevive entre invocações serverless e daria falsa proteção.
+ * Ambas as acções são limitadas por IP (ver `src/lib/rate-limit.ts`). A
+ * verificação acontece **antes** da validação: uma submissão inválida também
+ * consome trabalho do servidor e também tem de contar.
  */
 
 export type ContactFormState = {
@@ -47,6 +48,11 @@ export async function submitContactForm(
   // — respondemos com sucesso falso para não lhe dar sinal de deteção.
   if (String(formData.get("website") ?? "").trim()) {
     return { status: "success", message: "Mensagem enviada." };
+  }
+
+  const limit = await rateLimit("contact");
+  if (!limit.ok) {
+    return { status: "error", message: rateLimitMessage(limit.retryAfter) };
   }
 
   const parsed = contactSchema.safeParse({
@@ -118,6 +124,11 @@ export async function subscribeNewsletter(
 ): Promise<NewsletterState> {
   if (String(formData.get("website") ?? "").trim()) {
     return { status: "success", message: "Inscrição registada." };
+  }
+
+  const limit = await rateLimit("newsletter");
+  if (!limit.ok) {
+    return { status: "error", message: rateLimitMessage(limit.retryAfter) };
   }
 
   const parsed = newsletterSchema.safeParse({ email: formData.get("email") });

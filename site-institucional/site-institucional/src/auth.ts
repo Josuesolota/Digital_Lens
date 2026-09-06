@@ -94,6 +94,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 });
 
 /**
+ * A Next.js sinaliza controlo de fluxo através de excepções: `redirect()`,
+ * `notFound()` e — o caso que nos afecta — o `DynamicServerError` que marca uma
+ * rota como dinâmica quando algo lê `headers()` ou `cookies()`.
+ *
+ * Um `catch` genérico engole esses sinais e a framework passa a acreditar que a
+ * página pode ser estática. Antes de tratar qualquer erro como falha real,
+ * temos de os deixar propagar.
+ */
+function isFrameworkSignal(error: unknown): boolean {
+  const digest = (error as { digest?: unknown })?.digest;
+  return (
+    typeof digest === "string" &&
+    (digest === "DYNAMIC_SERVER_USAGE" || digest.startsWith("NEXT_"))
+  );
+}
+
+/**
  * Leitura de sessão tolerante a ambiente incompleto.
  *
  * `auth()` lança (e polui os logs) quando falta o `AUTH_SECRET`. Como o site
@@ -105,6 +122,7 @@ export async function getSession() {
   try {
     return await auth();
   } catch (error) {
+    if (isFrameworkSignal(error)) throw error;
     console.error("[auth] falha ao ler a sessão:", error);
     return null;
   }

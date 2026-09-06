@@ -71,3 +71,17 @@ create table if not exists newsletter_subscribers (
 
 create unique index if not exists newsletter_email_key
   on newsletter_subscribers (lower(email));
+
+-- Rate limiting ---------------------------------------------------------------
+-- Contador de janela fixa partilhado por todas as instâncias serverless.
+-- Ver `src/lib/rate-limit.ts` para a estratégia e os limites aplicados.
+create table if not exists rate_limits (
+  -- "<accao>:<identificador>[:<scope>]", ex.: "login:203.0.113.7:ana@x.pt"
+  bucket       text        primary key,
+  window_start timestamptz not null default now(),
+  hits         integer     not null default 0
+);
+
+-- Suporta a limpeza oportunista das janelas já expiradas.
+create index if not exists rate_limits_window_start_idx
+  on rate_limits (window_start);

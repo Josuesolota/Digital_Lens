@@ -7,6 +7,7 @@ import { signIn, signOut } from "@/auth";
 import { isDatabaseConfigured } from "@/lib/db";
 import { createUser, findUserByEmail } from "@/lib/db/queries";
 import { sendWelcomeEmail } from "@/lib/email";
+import { rateLimit, rateLimitMessage } from "@/lib/rate-limit";
 
 /**
  * Server Actions de autenticação.
@@ -14,6 +15,10 @@ import { sendWelcomeEmail } from "@/lib/email";
  * `signIn` do Auth.js lança um `redirect()` interno quando corre bem — por isso
  * o `NEXT_REDIRECT` tem de ser deixado propagar, e apenas os `AuthError` são
  * convertidos em mensagem para o utilizador.
+ *
+ * Ambas as acções são limitadas por IP. O login leva ainda um segundo balde
+ * por e-mail: sem ele, um atacante num IP partilhado (rede empresarial, NAT
+ * móvel) esgotaria o balde do IP e bloquearia utilizadores legítimos.
  */
 
 export type AuthFormState = {
@@ -75,6 +80,11 @@ export async function registerAction(
 
   const { name, email, password } = parsed.data;
 
+  const limit = await rateLimit("register");
+  if (!limit.ok) {
+    return { status: "error", message: rateLimitMessage(limit.retryAfter) };
+  }
+
   try {
     if (await findUserByEmail(email)) {
       return {
@@ -123,6 +133,15 @@ export async function loginAction(
       message: "Reveja os campos assinalados.",
       fieldErrors: toFieldErrors(parsed.error),
     };
+  }
+
+  // Dois baldes: um por IP (trava varreduras) e outro por IP+e-mail (trava
+  // força bruta contra uma conta concreta).
+  for (const scope of [undefined, parsed.data.email]) {
+    const limit = await rateLimit("login", scope);
+    if (!limit.ok) {
+      return { status: "error", message: rateLimitMessage(limit.retryAfter) };
+    }
   }
 
   const redirectTo = String(formData.get("redirectTo") || "/conta");
