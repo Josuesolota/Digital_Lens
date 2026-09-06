@@ -6,7 +6,12 @@ import { ArrowUpRight, Check } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
-import { formatPrice, pillarTitle, type Product } from "@/lib/products";
+import {
+  formatKwanzaEquivalent,
+  formatPrice,
+  pillarTitle,
+  type Product,
+} from "@/lib/products";
 import { cn } from "@/lib/utils";
 
 type ProductCardProps = {
@@ -72,20 +77,25 @@ export function ProductCard({
           </ul>
         )}
 
-        <div className="mt-auto flex items-baseline gap-1.5 border-t border-white/[0.07] pt-5">
+        <div className="mt-auto flex flex-col gap-1 border-t border-white/[0.07] pt-5">
           {product.price === null ? (
             <span className="font-display text-xl font-semibold text-fog-50">
               Sob orçamento
             </span>
           ) : (
             <>
-              <span className="text-xs text-fog-600">desde</span>
-              <span className="font-display text-2xl font-semibold text-gradient">
-                {formatPrice(product.price)}
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xs text-fog-600">desde</span>
+                <span className="font-display text-2xl font-semibold text-gradient">
+                  {formatPrice(product.price)}
+                </span>
+                {product.billing === "monthly" && (
+                  <span className="text-xs text-fog-600">/ mês</span>
+                )}
+              </div>
+              <span className="font-mono text-xs text-fog-600">
+                / {formatKwanzaEquivalent(product.price)}
               </span>
-              {product.billing === "monthly" && (
-                <span className="text-xs text-fog-600">/ mês</span>
-              )}
             </>
           )}
         </div>

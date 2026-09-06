@@ -95,7 +95,6 @@ export function Footer() {
               {link.label}
             </Link>
           ))}
-          <span>Feito com foco, em Angola.</span>
         </div>
       </Container>
     </footer>

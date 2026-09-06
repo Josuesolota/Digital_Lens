@@ -8,6 +8,16 @@ import { subscribeNewsletter, type NewsletterState } from "@/app/actions";
 
 const initialState: NewsletterState = { status: "idle" };
 
+/** Temas confirmados para a primeira leva de cursos e infoprodutos. */
+const UPCOMING_COURSES = [
+  "Desenvolvimento Web",
+  "Inteligência Artificial aplicada",
+  "Produção de Conteúdo",
+  "Oratória & Retórica",
+  "Trading",
+  "Ebooks",
+];
+
 /** Lista de espera para os cursos e infoprodutos. */
 export function ComingSoon() {
   const [state, formAction, pending] = useActionState(
@@ -44,9 +54,19 @@ export function ComingSoon() {
                 Cursos e infoprodutos Digital Lens
               </h2>
               <p className="text-balance text-fog-400">
-                Formações práticas em desenvolvimento, IA aplicada e produção de
-                conteúdo. Deixe o contacto e seja avisado em primeira mão.
+                Formações práticas e infoprodutos em seis áreas. Deixe o
+                contacto e seja avisado em primeira mão.
               </p>
+              <ul className="flex flex-wrap gap-1.5">
+                {UPCOMING_COURSES.map((course) => (
+                  <li
+                    key={course}
+                    className="rounded-full border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[11px] text-fog-400"
+                  >
+                    {course}
+                  </li>
+                ))}
+              </ul>
             </div>
 
             <div className="w-full md:w-auto">

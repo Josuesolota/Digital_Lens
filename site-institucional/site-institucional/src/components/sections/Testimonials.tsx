@@ -11,13 +11,13 @@ const TESTIMONIALS = [
     quote:
       "A equipa organizou em semanas o que outras agências não resolveram em meses.",
     name: "Cliente Digital Lens",
-    role: "Setor a definir",
+    role: "Retalho & Comércio",
   },
   {
     quote:
       "Finalmente uma agência que domina marketing e código ao mesmo tempo.",
     name: "Cliente Digital Lens",
-    role: "Setor a definir",
+    role: "Serviços Financeiros",
   },
 ];
 

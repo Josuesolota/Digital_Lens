@@ -374,3 +374,33 @@ export function formatPrice(cents: number, currency: string = siteConfig.currenc
     minimumFractionDigits: cents % 100 === 0 ? 0 : 2,
   }).format(cents / 100);
 }
+
+/**
+ * Câmbio de referência para o preço equivalente em Kwanzas mostrado ao lado do
+ * preço em euros. A Digital Lens fatura sempre em EUR via Stripe (a conta
+ * ainda não tem AOA activado como moeda de apresentação) — este valor é
+ * puramente informativo, para o cliente em Angola ter uma ordem de grandeza
+ * sem ter de converter de cabeça.
+ *
+ * Cotação de referência, média de mercado a 06/09/2026: 1 EUR ≈ 1065 AOA.
+ * Não há atualização automática — rever este número quando o câmbio se
+ * afastar muito do valor real.
+ */
+const EUR_TO_AOA_RATE = 1065;
+
+/** Desconto aplicado ao câmbio de mercado no preço em Kwanzas exibido. */
+const KWANZA_LOCAL_DISCOUNT = 0.6;
+
+/** Preço em Kwanzas a 60% do câmbio de mercado do dia: 129000 → "823 770 Kz". */
+export function formatKwanzaEquivalent(cents: number): string {
+  const eur = cents / 100;
+  const marketValueAoa = eur * EUR_TO_AOA_RATE;
+  const localValueAoa = marketValueAoa * KWANZA_LOCAL_DISCOUNT;
+
+  return new Intl.NumberFormat("pt-AO", {
+    style: "currency",
+    currency: "AOA",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(localValueAoa);
+}

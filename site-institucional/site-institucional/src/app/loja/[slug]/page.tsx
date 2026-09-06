@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { ProductCard } from "@/components/store/ProductCard";
 import {
+  formatKwanzaEquivalent,
   formatPrice,
   getProduct,
   getProductsByPillar,
@@ -148,6 +149,10 @@ export default async function ProdutoPage({ params }: PageProps) {
                         {product.billing === "monthly" && (
                           <span className="text-sm text-fog-600">/ mês</span>
                         )}
+                      </span>
+                      <span className="font-mono text-xs text-fog-600">
+                        / {formatKwanzaEquivalent(product.price)}
+                        {product.billing === "monthly" && " / mês"}
                       </span>
                       <span className="text-xs text-fog-600">
                         IVA à taxa legal em vigor, calculado no checkout.
