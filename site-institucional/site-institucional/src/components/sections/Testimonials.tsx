@@ -3,8 +3,9 @@
 import { m } from "framer-motion";
 import { Quote } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { GlassCard } from "@/components/ui/GlassCard";
 
-// Placeholder — substituir por depoimentos reais de clientes
+/** Placeholder — substituir por depoimentos reais assinados por clientes. */
 const TESTIMONIALS = [
   {
     quote:
@@ -14,7 +15,7 @@ const TESTIMONIALS = [
   },
   {
     quote:
-      "Finalmente uma agência que entende de marketing e de código ao mesmo tempo.",
+      "Finalmente uma agência que domina marketing e código ao mesmo tempo.",
     name: "Cliente Digital Lens",
     role: "Setor a definir",
   },
@@ -22,25 +23,26 @@ const TESTIMONIALS = [
 
 export function Testimonials() {
   return (
-    <section className="py-24">
-      <Container className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {TESTIMONIALS.map((t, i) => (
-          <m.figure
-            key={i}
-            initial={{ opacity: 0, y: 20 }}
+    <section className="py-20 lg:py-24">
+      <Container className="grid gap-5 md:grid-cols-2">
+        {TESTIMONIALS.map((testimonial, index) => (
+          <m.div
+            key={index}
+            initial={{ opacity: 0, y: 22 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.5, delay: i * 0.1 }}
-            className="rounded-2xl border border-ink-900/8 p-8 flex flex-col gap-6"
+            viewport={{ once: true, margin: "-70px" }}
+            transition={{ duration: 0.5, delay: index * 0.09 }}
           >
-            <Quote className="text-signal-600/40" size={28} />
-            <blockquote className="font-display text-xl text-ink-900 text-balance leading-snug">
-              “{t.quote}”
-            </blockquote>
-            <figcaption className="text-sm text-neutral-600">
-              {t.name} — {t.role}
-            </figcaption>
-          </m.figure>
+            <GlassCard className="flex h-full flex-col gap-6 p-8">
+              <Quote size={26} className="text-lens-violet-400/50" />
+              <blockquote className="text-balance font-display text-lg leading-snug text-fog-50">
+                “{testimonial.quote}”
+              </blockquote>
+              <figcaption className="mt-auto text-sm text-fog-600">
+                {testimonial.name} — {testimonial.role}
+              </figcaption>
+            </GlassCard>
+          </m.div>
         ))}
       </Container>
     </section>

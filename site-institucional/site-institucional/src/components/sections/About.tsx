@@ -4,55 +4,73 @@ import { m } from "framer-motion";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
-const DIFERENCIAIS = [
+const STEPS = [
   {
-    title: "Um só ponto de contacto",
+    title: "Diagnóstico",
     description:
-      "Estratégia, criação e desenvolvimento sob a mesma equipa — sem perdas na tradução entre fornecedores.",
+      "Uma sessão para perceber o negócio, o público e o que está mesmo a travar o crescimento. Sem proposta antes de haver diagnóstico.",
   },
   {
-    title: "Decisões orientadas por dados",
+    title: "Desenho",
     description:
-      "Cada campanha e cada linha de código tem um objetivo mensurável por trás.",
+      "Estratégia, arquitetura e protótipo com âmbito e prazos fechados por escrito. Aprova antes de começarmos a construir.",
   },
   {
-    title: "IA aplicada, não modismo",
+    title: "Execução",
     description:
-      "Usamos automação onde ela poupa tempo e dinheiro real ao seu negócio.",
+      "Entregas semanais visíveis num ambiente de pré-produção — acompanha o progresso sem esperar pelo fim.",
+  },
+  {
+    title: "Medição",
+    description:
+      "Analítica configurada desde o primeiro dia e relatório com o que funcionou, o que não funcionou e o passo seguinte.",
   },
 ];
 
 export function About() {
   return (
-    <section id="sobre" className="py-24">
-      <Container className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-12 lg:gap-20">
+    <section id="metodo" className="relative py-24 lg:py-32">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 grid-void opacity-40 [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000,transparent)]"
+      />
+
+      <Container className="relative grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
         <SectionHeading
-          eyebrow="Porquê a Digital Lens"
-          title="Cada projeto passa pela mesma lente: clareza antes de execução."
+          eyebrow="Como trabalhamos"
+          title={
+            <>
+              Clareza antes de{" "}
+              <span className="text-gradient">execução.</span>
+            </>
+          }
+          description="Um método em quatro tempos que elimina surpresas — para si e para nós."
         />
 
-        <div className="flex flex-col gap-8">
-          {DIFERENCIAIS.map((item, i) => (
-            <m.div
-              key={item.title}
-              initial={{ opacity: 0, x: 16 }}
+        <ol className="flex flex-col">
+          {STEPS.map((step, index) => (
+            <m.li
+              key={step.title}
+              initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.5, delay: i * 0.08 }}
-              className="flex gap-5 pb-8 border-b border-ink-900/10 last:border-0 last:pb-0"
+              viewport={{ once: true, margin: "-70px" }}
+              transition={{ duration: 0.5, delay: index * 0.08 }}
+              className="group flex gap-6 border-b border-white/[0.07] py-7 last:border-0 last:pb-0 first:pt-0"
             >
-              <span className="font-display text-2xl text-signal-600/70 shrink-0">
-                {String(i + 1).padStart(2, "0")}
+              <span className="shrink-0 font-mono text-sm text-lens-violet-400/70 transition-colors group-hover:text-lens-magenta-400">
+                {String(index + 1).padStart(2, "0")}
               </span>
-              <div className="flex flex-col gap-1.5">
-                <h3 className="font-display text-lg font-semibold text-ink-900">
-                  {item.title}
+              <div className="flex flex-col gap-2">
+                <h3 className="font-display text-lg font-semibold text-fog-50">
+                  {step.title}
                 </h3>
-                <p className="text-sm text-neutral-600">{item.description}</p>
+                <p className="text-sm leading-relaxed text-fog-400">
+                  {step.description}
+                </p>
               </div>
-            </m.div>
+            </m.li>
           ))}
-        </div>
+        </ol>
       </Container>
     </section>
   );

@@ -1,89 +1,83 @@
 "use client";
 
+import Link from "next/link";
 import { m } from "framer-motion";
-import {
-  Megaphone,
-  Code2,
-  BrainCircuit,
-  Clapperboard,
-  Mic2,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { SERVICE_PILLARS } from "@/lib/services";
 
-type Service = {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-};
-
-const SERVICES: Service[] = [
-  {
-    icon: Megaphone,
-    title: "Marketing Digital",
-    description:
-      "Estratégia, gestão de campanhas e conteúdo orientado a resultados mensuráveis.",
-  },
-  {
-    icon: Code2,
-    title: "Desenvolvimento Web",
-    description:
-      "Sites e plataformas rápidas, seguras e construídas para converter.",
-  },
-  {
-    icon: BrainCircuit,
-    title: "Soluções com IA",
-    description:
-      "Automação, agentes e integrações que tornam processos mais inteligentes.",
-  },
-  {
-    icon: Clapperboard,
-    title: "Produção Multimédia",
-    description:
-      "Vídeo, fotografia e edição para dar corpo visual à sua marca.",
-  },
-  {
-    icon: Mic2,
-    title: "Locução",
-    description:
-      "Voz profissional para publicidade, vídeo institucional e conteúdo áudio.",
-  },
-];
-
+/**
+ * Os quatro pilares na homepage. Cada cartão lista os serviços concretos e
+ * liga à página dedicada do pilar.
+ */
 export function Services() {
   return (
-    <section id="servicos" className="py-24 bg-paper-100">
-      <Container className="flex flex-col gap-12">
+    <section id="servicos" className="relative py-24 lg:py-32">
+      <Container className="flex flex-col gap-14">
         <SectionHeading
           eyebrow="O que fazemos"
-          title="Cinco especialidades, uma só direção."
-          description="Cada serviço funciona isolado — mas ganha nitidez quando combinado."
+          title={
+            <>
+              Quatro especialidades,{" "}
+              <span className="text-gradient">uma só direção.</span>
+            </>
+          }
+          description="Cada área funciona isolada — mas ganha nitidez quando combinada com as outras."
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {SERVICES.map((service, i) => (
+        <div className="grid gap-5 md:grid-cols-2">
+          {SERVICE_PILLARS.map((pillar, index) => (
             <m.div
-              key={service.title}
-              initial={{ opacity: 0, y: 20 }}
+              key={pillar.slug}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.5, delay: i * 0.06 }}
-              className="group relative rounded-2xl bg-paper-50 border border-ink-900/8 p-7 flex flex-col gap-4 transition-shadow duration-300 hover:shadow-[0_20px_40px_-24px_rgba(15,27,45,0.25)]"
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.55, delay: index * 0.07 }}
             >
-              <div
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-ink-900/5 text-ink-700 grayscale opacity-70 blur-[1px]
-                           transition-all duration-500 ease-out
-                           group-hover:grayscale-0 group-hover:opacity-100 group-hover:blur-0 group-hover:bg-signal-600 group-hover:text-paper-50 group-hover:scale-110"
-              >
-                <service.icon size={22} strokeWidth={1.75} />
-              </div>
-              <h3 className="font-display text-xl font-semibold text-ink-900">
-                {service.title}
-              </h3>
-              <p className="text-sm text-neutral-600 text-balance">
-                {service.description}
-              </p>
+              <GlassCard interactive className="group h-full p-7 lg:p-8">
+                <Link
+                  href={`/servicos/${pillar.slug}`}
+                  className="flex h-full flex-col gap-5"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <span
+                      className="flex h-12 w-12 items-center justify-center rounded-xl shadow-lg transition-transform duration-500 group-hover:scale-110"
+                      style={{
+                        background: `linear-gradient(135deg, ${pillar.gradient[0]}, ${pillar.gradient[1]})`,
+                        boxShadow: `0 12px 32px -12px ${pillar.gradient[1]}`,
+                      }}
+                    >
+                      <pillar.icon size={22} strokeWidth={1.75} className="text-white" />
+                    </span>
+                    <ArrowUpRight
+                      size={19}
+                      className="text-fog-600 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-fog-50"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <h3 className="font-display text-xl font-semibold text-fog-50">
+                      {pillar.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed text-fog-400">
+                      {pillar.tagline}
+                    </p>
+                  </div>
+
+                  <ul className="mt-auto flex flex-wrap gap-1.5 pt-2">
+                    {pillar.items.map((item) => (
+                      <li
+                        key={item.title}
+                        className="rounded-full border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[11px] text-fog-400 transition-colors group-hover:border-white/[0.14]"
+                      >
+                        {item.title}
+                      </li>
+                    ))}
+                  </ul>
+                </Link>
+              </GlassCard>
             </m.div>
           ))}
         </div>

@@ -1,10 +1,16 @@
 import dynamic from "next/dynamic";
 import { Hero } from "@/components/sections/Hero";
 import { Services } from "@/components/sections/Services";
-import { About } from "@/components/sections/About";
 
-// Abaixo da dobra: divididos em chunks próprios, carregados após o conteúdo
-// crítico (Hero/Serviços) — reduz o JS necessário para o primeiro paint.
+/**
+ * Homepage. Só o Hero e os Serviços entram no bundle inicial; tudo o que fica
+ * abaixo da dobra é dividido em chunks próprios, carregados depois do conteúdo
+ * crítico.
+ */
+const About = dynamic(() => import("@/components/sections/About").then((m) => m.About));
+const StorePreview = dynamic(() =>
+  import("@/components/sections/StorePreview").then((m) => m.StorePreview)
+);
 const Portfolio = dynamic(() =>
   import("@/components/sections/Portfolio").then((m) => m.Portfolio)
 );
@@ -24,6 +30,7 @@ export default function Home() {
       <Hero />
       <Services />
       <About />
+      <StorePreview />
       <Portfolio />
       <Testimonials />
       <ComingSoon />

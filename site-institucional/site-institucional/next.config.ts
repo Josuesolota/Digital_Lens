@@ -19,10 +19,22 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // Cache agressivo para assets estáticos versionados pelo Next
-        source: "/_next/static/:path*",
+        /*
+         * O service worker nunca deve ser servido de cache: se ficar preso a
+         * uma versão antiga, o utilizador deixa de receber actualizações do
+         * site até limpar os dados do browser.
+         */
+        source: "/sw.js",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+          { key: "Service-Worker-Allowed", value: "/" },
+        ],
+      },
+      {
+        // Ícones do PWA — imutáveis entre builds, gerados a partir da marca.
+        source: "/icons/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" },
         ],
       },
       {

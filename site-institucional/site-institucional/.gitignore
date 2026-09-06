@@ -1,0 +1,44 @@
+# Dependências
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/versions
+
+# Build e cache
+/.next/
+/out/
+/build
+*.tsbuildinfo
+next-env.d.ts
+
+# Testes e cobertura
+/coverage
+
+# Variáveis de ambiente — NUNCA versionar segredos.
+# O ficheiro de referência (.env.example) é o único que fica no repositório.
+.env
+.env*.local
+.env.development
+.env.production
+
+# Plataformas
+.vercel
+.netlify
+
+# Sistema operativo e editores
+.DS_Store
+Thumbs.db
+*.pem
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
