@@ -50,7 +50,7 @@ export function Footer() {
             </a>
             <span className="flex items-center gap-2">
               <MapPin size={15} strokeWidth={1.75} />
-              {siteConfig.address.locality}, Portugal
+              {siteConfig.address.locality}, Angola
             </span>
           </div>
         </div>
@@ -95,7 +95,7 @@ export function Footer() {
               {link.label}
             </Link>
           ))}
-          <span>Feito com foco, em Portugal.</span>
+          <span>Feito com foco, em Angola.</span>
         </div>
       </Container>
     </footer>

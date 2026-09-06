@@ -115,7 +115,7 @@ const organizationJsonLd = {
   email: siteConfig.email,
   image: absoluteUrl("/og-image.png"),
   logo: absoluteUrl("/icons/icon-512.png"),
-  areaServed: "PT",
+  areaServed: siteConfig.address.country,
   address: {
     "@type": "PostalAddress",
     addressLocality: siteConfig.address.locality,
@@ -133,7 +133,7 @@ export default async function RootLayout({
 
   return (
     <html
-      lang="pt-PT"
+      lang={siteConfig.language}
       className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} h-full`}
       suppressHydrationWarning
     >

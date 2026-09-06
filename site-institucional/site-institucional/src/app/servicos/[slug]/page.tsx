@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { ProductCard } from "@/components/store/ProductCard";
 import { getPillar, SERVICE_SLUGS } from "@/lib/services";
 import { getProductsByPillar } from "@/lib/products";
-import { absoluteUrl } from "@/lib/site-config";
+import { absoluteUrl, siteConfig } from "@/lib/site-config";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -48,7 +48,7 @@ export default async function ServicoPage({ params }: PageProps) {
     name: pillar.title,
     description: pillar.description,
     provider: { "@id": absoluteUrl("/#organization") },
-    areaServed: "PT",
+    areaServed: siteConfig.address.country,
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: pillar.title,

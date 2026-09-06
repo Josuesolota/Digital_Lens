@@ -15,14 +15,14 @@ export const siteConfig = {
   tagline: "Sob uma só lente.",
   description:
     "Agência digital: desenvolvimento web, inteligência artificial, marketing digital e locução profissional — da estratégia à execução, sob uma só lente.",
-  locale: "pt_PT",
-  language: "pt-PT",
+  locale: "pt_AO",
+  language: "pt-AO",
   currency: "EUR",
-  email: "geral@digitallens.pt",
-  phone: "+351 000 000 000",
+  email: "geral@digitallens.ao",
+  phone: "+244 900 000 000",
   address: {
-    locality: "Lisboa",
-    country: "PT",
+    locality: "Huambo",
+    country: "AO",
   },
   sameAs: [
     // Adicionar os perfis reais assim que existirem — alimentam o JSON-LD.

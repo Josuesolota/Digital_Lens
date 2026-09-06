@@ -10,6 +10,7 @@
  */
 
 import { SERVICE_PILLARS } from "@/lib/services";
+import { siteConfig } from "@/lib/site-config";
 
 export type Billing = "one-time" | "monthly";
 
@@ -365,9 +366,9 @@ export function pillarTitle(pillarSlug: string): string {
   );
 }
 
-/** Formata cêntimos como moeda pt-PT: 129000 → "1 290 €". */
-export function formatPrice(cents: number, currency = "EUR"): string {
-  return new Intl.NumberFormat("pt-PT", {
+/** Formata cêntimos como moeda: 129000 → "1 290,00 €". */
+export function formatPrice(cents: number, currency: string = siteConfig.currency): string {
+  return new Intl.NumberFormat(siteConfig.language, {
     style: "currency",
     currency,
     minimumFractionDigits: cents % 100 === 0 ? 0 : 2,

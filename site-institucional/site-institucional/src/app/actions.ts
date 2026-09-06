@@ -100,7 +100,7 @@ export async function submitContactForm(
     // Sem persistência e sem e-mail, a mensagem perder-se-ia de facto.
     return {
       status: "error",
-      message: `Não foi possível enviar. Escreva-nos directamente para ${process.env.EMAIL_TO ?? "geral@digitallens.pt"}.`,
+      message: `Não foi possível enviar. Escreva-nos directamente para ${process.env.EMAIL_TO ?? "geral@digitallens.ao"}.`,
     };
   }
 

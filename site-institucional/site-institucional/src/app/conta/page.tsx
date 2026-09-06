@@ -94,7 +94,7 @@ export default async function ContaPage() {
                           {order.items.map((item) => item.name).join(", ")}
                         </p>
                         <p className="mt-1 text-xs text-fog-600">
-                          {new Date(order.created_at).toLocaleDateString("pt-PT", {
+                          {new Date(order.created_at).toLocaleDateString("pt-AO", {
                             day: "2-digit",
                             month: "long",
                             year: "numeric",
