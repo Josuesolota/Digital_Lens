@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, m } from "framer-motion";
 import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
-import { useCart } from "@/components/cart/cart-context";
+import { cartLineKey, useCart, type CartLine } from "@/components/cart/cart-context";
 import { Button } from "@/components/ui/Button";
 import { formatPrice } from "@/lib/products";
 
@@ -47,6 +47,7 @@ export function CartDrawer() {
           items: lines.map((line) => ({
             productId: line.product.id,
             quantity: line.quantity,
+            selection: line.selection,
           })),
         }),
       });
@@ -115,51 +116,19 @@ export function CartDrawer() {
             ) : (
               <>
                 <ul className="flex-1 divide-y divide-white/[0.07] overflow-y-auto px-6">
-                  {lines.map(({ product, quantity }) => (
-                    <li key={product.id} className="flex gap-4 py-5">
-                      <div className="min-w-0 flex-1">
-                        <Link
-                          href={`/loja/${product.slug}`}
-                          onClick={close}
-                          className="font-medium text-fog-50 transition-colors hover:text-lens-violet-400"
-                        >
-                          {product.name}
-                        </Link>
-                        <p className="mt-1 font-mono text-xs text-fog-600">
-                          {formatPrice(product.price)}
-                          {product.billing === "monthly" && " / mês"}
-                        </p>
-
-                        <div className="mt-3 flex items-center gap-1">
-                          <QuantityButton
-                            label={`Diminuir quantidade de ${product.name}`}
-                            onClick={() => setQuantity(product.id, quantity - 1)}
-                          >
-                            <Minus size={13} />
-                          </QuantityButton>
-                          <span className="w-9 text-center font-mono text-sm text-fog-200">
-                            {quantity}
-                          </span>
-                          <QuantityButton
-                            label={`Aumentar quantidade de ${product.name}`}
-                            onClick={() => setQuantity(product.id, quantity + 1)}
-                          >
-                            <Plus size={13} />
-                          </QuantityButton>
-                          <button
-                            onClick={() => remove(product.id)}
-                            className="ml-2 rounded-md p-1.5 text-fog-600 transition-colors hover:text-danger-400"
-                            aria-label={`Remover ${product.name}`}
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </div>
-
-                      <span className="shrink-0 font-mono text-sm text-fog-50">
-                        {formatPrice(product.price * quantity)}
-                      </span>
-                    </li>
+                  {lines.map((line) => (
+                    <CartLineItem
+                      key={cartLineKey(line)}
+                      line={line}
+                      onNavigate={close}
+                      onRemove={() => remove(line.product.id, line.selection)}
+                      onDecrease={() =>
+                        setQuantity(line.product.id, line.selection, line.quantity - 1)
+                      }
+                      onIncrease={() =>
+                        setQuantity(line.product.id, line.selection, line.quantity + 1)
+                      }
+                    />
                   ))}
                 </ul>
 
@@ -208,6 +177,64 @@ export function CartDrawer() {
         </m.div>
       )}
     </AnimatePresence>
+  );
+}
+
+function CartLineItem({
+  line,
+  onNavigate,
+  onRemove,
+  onDecrease,
+  onIncrease,
+}: {
+  line: CartLine;
+  onNavigate: () => void;
+  onRemove: () => void;
+  onDecrease: () => void;
+  onIncrease: () => void;
+}) {
+  const { product, quantity, unitPrice, summary } = line;
+
+  return (
+    <li className="flex gap-4 py-5">
+      <div className="min-w-0 flex-1">
+        <Link
+          href={`/loja/${product.slug}`}
+          onClick={onNavigate}
+          className="font-medium text-fog-50 transition-colors hover:text-lens-violet-400"
+        >
+          {product.name}
+        </Link>
+        {summary.length > 0 && (
+          <p className="mt-1 text-xs text-fog-400">{summary.join(", ")}</p>
+        )}
+        <p className="mt-1 font-mono text-xs text-fog-600">
+          {formatPrice(unitPrice)}
+          {product.billing === "monthly" && " / mês"}
+        </p>
+
+        <div className="mt-3 flex items-center gap-1">
+          <QuantityButton label={`Diminuir quantidade de ${product.name}`} onClick={onDecrease}>
+            <Minus size={13} />
+          </QuantityButton>
+          <span className="w-9 text-center font-mono text-sm text-fog-200">{quantity}</span>
+          <QuantityButton label={`Aumentar quantidade de ${product.name}`} onClick={onIncrease}>
+            <Plus size={13} />
+          </QuantityButton>
+          <button
+            onClick={onRemove}
+            className="ml-2 rounded-md p-1.5 text-fog-600 transition-colors hover:text-danger-400"
+            aria-label={`Remover ${product.name}`}
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </div>
+
+      <span className="shrink-0 font-mono text-sm text-fog-50">
+        {formatPrice(unitPrice * quantity)}
+      </span>
+    </li>
   );
 }
 

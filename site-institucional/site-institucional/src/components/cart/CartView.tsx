@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
-import { useCart } from "@/components/cart/cart-context";
+import { cartLineKey, useCart, type CartLine } from "@/components/cart/cart-context";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { formatPrice, pillarTitle } from "@/lib/products";
@@ -36,6 +36,7 @@ export function CartView() {
           items: lines.map((line) => ({
             productId: line.product.id,
             quantity: line.quantity,
+            selection: line.selection,
           })),
         }),
       });
@@ -86,59 +87,14 @@ export function CartView() {
           </p>
         )}
 
-        {lines.map(({ product, quantity }) => (
-          <GlassCard
-            key={product.id}
-            className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="min-w-0">
-              <span className="eyebrow text-fog-600">
-                {pillarTitle(product.pillar)}
-              </span>
-              <Link
-                href={`/loja/${product.slug}`}
-                className="mt-1.5 block font-display text-lg font-medium text-fog-50 transition-colors hover:text-lens-violet-400"
-              >
-                {product.name}
-              </Link>
-              <p className="mt-1 font-mono text-xs text-fog-600">
-                {formatPrice(product.price)}
-                {product.billing === "monthly" && " / mês"}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1">
-                <QuantityButton
-                  label={`Diminuir quantidade de ${product.name}`}
-                  onClick={() => setQuantity(product.id, quantity - 1)}
-                >
-                  <Minus size={13} />
-                </QuantityButton>
-                <span className="w-9 text-center font-mono text-sm text-fog-200">
-                  {quantity}
-                </span>
-                <QuantityButton
-                  label={`Aumentar quantidade de ${product.name}`}
-                  onClick={() => setQuantity(product.id, quantity + 1)}
-                >
-                  <Plus size={13} />
-                </QuantityButton>
-              </div>
-
-              <span className="w-24 text-right font-mono text-sm text-fog-50">
-                {formatPrice(product.price * quantity)}
-              </span>
-
-              <button
-                onClick={() => remove(product.id)}
-                className="rounded-md p-2 text-fog-600 transition-colors hover:text-danger-400"
-                aria-label={`Remover ${product.name}`}
-              >
-                <Trash2 size={15} />
-              </button>
-            </div>
-          </GlassCard>
+        {lines.map((line) => (
+          <CartLineCard
+            key={cartLineKey(line)}
+            line={line}
+            onRemove={() => remove(line.product.id, line.selection)}
+            onDecrease={() => setQuantity(line.product.id, line.selection, line.quantity - 1)}
+            onIncrease={() => setQuantity(line.product.id, line.selection, line.quantity + 1)}
+          />
         ))}
       </div>
 
@@ -182,6 +138,65 @@ export function CartView() {
         </GlassCard>
       </aside>
     </div>
+  );
+}
+
+function CartLineCard({
+  line,
+  onRemove,
+  onDecrease,
+  onIncrease,
+}: {
+  line: CartLine;
+  onRemove: () => void;
+  onDecrease: () => void;
+  onIncrease: () => void;
+}) {
+  const { product, quantity, unitPrice, summary } = line;
+
+  return (
+    <GlassCard className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-w-0">
+        <span className="eyebrow text-fog-600">{pillarTitle(product.pillar)}</span>
+        <Link
+          href={`/loja/${product.slug}`}
+          className="mt-1.5 block font-display text-lg font-medium text-fog-50 transition-colors hover:text-lens-violet-400"
+        >
+          {product.name}
+        </Link>
+        {summary.length > 0 && (
+          <p className="mt-1 text-xs text-fog-400">{summary.join(", ")}</p>
+        )}
+        <p className="mt-1 font-mono text-xs text-fog-600">
+          {formatPrice(unitPrice)}
+          {product.billing === "monthly" && " / mês"}
+        </p>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1">
+          <QuantityButton label={`Diminuir quantidade de ${product.name}`} onClick={onDecrease}>
+            <Minus size={13} />
+          </QuantityButton>
+          <span className="w-9 text-center font-mono text-sm text-fog-200">{quantity}</span>
+          <QuantityButton label={`Aumentar quantidade de ${product.name}`} onClick={onIncrease}>
+            <Plus size={13} />
+          </QuantityButton>
+        </div>
+
+        <span className="w-24 text-right font-mono text-sm text-fog-50">
+          {formatPrice(unitPrice * quantity)}
+        </span>
+
+        <button
+          onClick={onRemove}
+          className="rounded-md p-2 text-fog-600 transition-colors hover:text-danger-400"
+          aria-label={`Remover ${product.name}`}
+        >
+          <Trash2 size={15} />
+        </button>
+      </div>
+    </GlassCard>
   );
 }
 

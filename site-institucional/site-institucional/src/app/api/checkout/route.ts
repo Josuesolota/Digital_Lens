@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/auth";
-import { getProductById } from "@/lib/products";
+import { getProductById, resolvePrice } from "@/lib/products";
 import { stripe, isStripeConfigured } from "@/lib/stripe";
 import { isDatabaseConfigured } from "@/lib/db";
 import { createPendingOrder, type OrderItem } from "@/lib/db/queries";
@@ -13,10 +13,26 @@ export const runtime = "nodejs";
 /**
  * Cria a sessão de checkout do Stripe.
  *
- * Regra de ouro: o cliente envia apenas `{ productId, quantity }`. Nome, preço
- * e modo de faturação são lidos do catálogo no servidor — nunca do pedido —
- * para que ninguém possa comprar um site institucional por 1 cêntimo.
+ * Regra de ouro: o cliente envia apenas `{ productId, quantity, selection }`.
+ * Nome, modo de faturação e — a parte que importa aqui — o **preço**, são
+ * sempre recalculados no servidor a partir do catálogo com `resolvePrice()`,
+ * nunca lidos de um valor que o pedido tenha trazido. Um produto configurável
+ * (desenvolvimento web, IA) tem o preço final determinado pelas opções
+ * escolhidas — é a escolha que confiamos, não o total que dela resultaria no
+ * cliente. Isto impede que alguém intercepte o pedido e compre um site
+ * institucional completo pelo preço da opção mais barata.
  */
+
+const configSelectionSchema = z.union([
+  z.object({
+    kind: z.literal("features"),
+    optionIds: z.array(z.string().min(1)).max(40),
+  }),
+  z.object({
+    kind: z.literal("tier"),
+    levelIndex: z.coerce.number().int().min(0).max(20),
+  }),
+]);
 
 const bodySchema = z.object({
   items: z
@@ -24,6 +40,7 @@ const bodySchema = z.object({
       z.object({
         productId: z.string().min(1),
         quantity: z.coerce.number().int().min(1).max(20),
+        selection: configSelectionSchema.optional(),
       })
     )
     .min(1)
@@ -54,8 +71,19 @@ export async function POST(request: Request) {
 
   const resolved = parsed.data.items.flatMap((line) => {
     const product = getProductById(line.productId);
-    if (!product || product.price === null) return [];
-    return [{ product, quantity: line.quantity, price: product.price }];
+    if (!product || product.priceRange === null) return [];
+
+    const resolution = resolvePrice(product, line.selection);
+    if (!resolution.ok) return [];
+
+    return [
+      {
+        product,
+        quantity: line.quantity,
+        price: resolution.price,
+        summary: resolution.summary,
+      },
+    ];
   });
 
   if (resolved.length === 0) {
@@ -97,7 +125,7 @@ export async function POST(request: Request) {
             ? { recurring: { interval: "month" as const } }
             : {}),
           product_data: {
-            name: line.product.name,
+            name: lineDisplayName(line),
             description: line.product.summary,
           },
         },
@@ -119,7 +147,7 @@ export async function POST(request: Request) {
     if (isDatabaseConfigured()) {
       const items: OrderItem[] = resolved.map((line) => ({
         productId: line.product.id,
-        name: line.product.name,
+        name: lineDisplayName(line),
         quantity: line.quantity,
         unitAmount: line.price,
         billing: line.product.billing,
@@ -147,4 +175,15 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * Nome da linha para o Stripe e para o histórico de encomendas: o produto,
+ * seguido da configuração escolhida quando existe — ex.: "Site Institucional
+ * — Até 6 páginas, Design 100% original".
+ */
+function lineDisplayName(line: { product: { name: string }; summary: readonly string[] }): string {
+  return line.summary.length > 0
+    ? `${line.product.name} — ${line.summary.join(", ")}`
+    : line.product.name;
 }

@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, CalendarClock, Check } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { AuroraBackground } from "@/components/ui/AuroraBackground";
 import { Button } from "@/components/ui/Button";
-import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { ProductCard } from "@/components/store/ProductCard";
+import { ProductPurchasePanel } from "@/components/store/ProductPurchasePanel";
 import {
-  formatKwanzaEquivalent,
-  formatPrice,
   getProduct,
   getProductsByPillar,
   pillarTitle,
@@ -56,14 +54,24 @@ export default async function ProdutoPage({ params }: PageProps) {
     name: product.name,
     description: product.description,
     brand: { "@type": "Brand", name: siteConfig.name },
-    ...(product.price !== null && {
-      offers: {
-        "@type": "Offer",
-        price: (product.price / 100).toFixed(2),
-        priceCurrency: siteConfig.currency,
-        availability: "https://schema.org/InStock",
-        url: absoluteUrl(`/loja/${product.slug}`),
-      },
+    ...(product.priceRange && {
+      offers:
+        product.priceRange.min === product.priceRange.max
+          ? {
+              "@type": "Offer",
+              price: (product.priceRange.min / 100).toFixed(2),
+              priceCurrency: siteConfig.currency,
+              availability: "https://schema.org/InStock",
+              url: absoluteUrl(`/loja/${product.slug}`),
+            }
+          : {
+              "@type": "AggregateOffer",
+              lowPrice: (product.priceRange.min / 100).toFixed(2),
+              highPrice: (product.priceRange.max / 100).toFixed(2),
+              priceCurrency: siteConfig.currency,
+              availability: "https://schema.org/InStock",
+              url: absoluteUrl(`/loja/${product.slug}`),
+            },
     }),
   };
 
@@ -122,7 +130,7 @@ export default async function ProdutoPage({ params }: PageProps) {
             {/* ── Painel de compra ── */}
             <aside className="lg:sticky lg:top-24 lg:self-start">
               <GlassCard className="flex flex-col gap-5 p-7">
-                {product.price === null ? (
+                {product.priceRange === null ? (
                   <>
                     <div className="flex flex-col gap-1">
                       <span className="eyebrow text-fog-600">Investimento</span>
@@ -139,33 +147,7 @@ export default async function ProdutoPage({ params }: PageProps) {
                     </Button>
                   </>
                 ) : (
-                  <>
-                    <div className="flex flex-col gap-1">
-                      <span className="eyebrow text-fog-600">Investimento</span>
-                      <span className="flex items-baseline gap-1.5">
-                        <span className="font-display text-4xl font-semibold text-gradient">
-                          {formatPrice(product.price)}
-                        </span>
-                        {product.billing === "monthly" && (
-                          <span className="text-sm text-fog-600">/ mês</span>
-                        )}
-                      </span>
-                      <span className="font-mono text-xs text-fog-600">
-                        / {formatKwanzaEquivalent(product.price)}
-                        {product.billing === "monthly" && " / mês"}
-                      </span>
-                      <span className="text-xs text-fog-600">
-                        IVA à taxa legal em vigor, calculado no checkout.
-                      </span>
-                    </div>
-
-                    <AddToCartButton productId={product.id} />
-
-                    <p className="flex items-center gap-2 text-xs text-fog-400">
-                      <CalendarClock size={14} className="text-lens-violet-400" />
-                      Entrega típica em {product.deliveryDays} dias úteis
-                    </p>
-                  </>
+                  <ProductPurchasePanel product={product} />
                 )}
 
                 <div className="border-t border-white/[0.08] pt-5">

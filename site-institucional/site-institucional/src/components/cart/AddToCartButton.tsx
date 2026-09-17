@@ -4,10 +4,17 @@ import { useEffect, useRef, useState } from "react";
 import { Check, Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useCart } from "@/components/cart/cart-context";
+import type { ConfigSelection } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
 type AddToCartButtonProps = {
   productId: string;
+  /** Quantidade a adicionar (ou, em produtos "por hora"/"por pack", o número de unidades) */
+  quantity?: number;
+  /** Configuração escolhida — ausente para produtos de preço fixo (um só nível) */
+  selection?: ConfigSelection;
+  /** Desactiva o botão, ex.: enquanto a escolha do configurador é inválida/incompleta */
+  disabled?: boolean;
   className?: string;
   size?: "sm" | "md" | "lg";
   label?: string;
@@ -15,6 +22,9 @@ type AddToCartButtonProps = {
 
 export function AddToCartButton({
   productId,
+  quantity = 1,
+  selection,
+  disabled = false,
   className,
   size = "md",
   label = "Adicionar ao carrinho",
@@ -31,9 +41,10 @@ export function AddToCartButton({
     <Button
       type="button"
       size={size}
+      disabled={disabled}
       className={cn("w-full", className)}
       onClick={() => {
-        add(productId);
+        add(productId, quantity, selection);
         setAdded(true);
         // Confirmação efémera: o estado real vive no badge do carrinho.
         window.clearTimeout(timer.current);

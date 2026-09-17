@@ -5,7 +5,6 @@ import { m } from "framer-motion";
 import { ArrowUpRight, Check } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import {
   formatKwanzaEquivalent,
   formatPrice,
@@ -26,6 +25,8 @@ export function ProductCard({
   index = 0,
   showFeatures = true,
 }: ProductCardProps) {
+  const { priceRange } = product;
+
   return (
     <m.div
       initial={{ opacity: 0, y: 22 }}
@@ -78,7 +79,7 @@ export function ProductCard({
         )}
 
         <div className="mt-auto flex flex-col gap-1 border-t border-white/[0.07] pt-5">
-          {product.price === null ? (
+          {priceRange === null ? (
             <span className="font-display text-xl font-semibold text-fog-50">
               Sob orçamento
             </span>
@@ -87,21 +88,21 @@ export function ProductCard({
               <div className="flex items-baseline gap-1.5">
                 <span className="text-xs text-fog-600">desde</span>
                 <span className="font-display text-2xl font-semibold text-gradient">
-                  {formatPrice(product.price)}
+                  {formatPrice(priceRange.min)}
                 </span>
                 {product.billing === "monthly" && (
                   <span className="text-xs text-fog-600">/ mês</span>
                 )}
               </div>
               <span className="font-mono text-xs text-fog-600">
-                / {formatKwanzaEquivalent(product.price)}
+                / {formatKwanzaEquivalent(priceRange.min)}
               </span>
             </>
           )}
         </div>
 
         <div className="mt-4">
-          {product.price === null ? (
+          {priceRange === null ? (
             <Button
               href={`/contacto?servico=${product.slug}`}
               variant="secondary"
@@ -111,7 +112,9 @@ export function ProductCard({
               Pedir orçamento
             </Button>
           ) : (
-            <AddToCartButton productId={product.id} size="sm" />
+            <Button href={`/loja/${product.slug}`} size="sm" className="w-full">
+              {priceRange.min === priceRange.max ? "Ver detalhes" : "Configurar preço"}
+            </Button>
           )}
         </div>
       </GlassCard>

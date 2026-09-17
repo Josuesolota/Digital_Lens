@@ -1,3 +1,5 @@
+import type { ConfigSelection } from "@/lib/products";
+
 /**
  * Store externo do carrinho.
  *
@@ -10,19 +12,44 @@
  *  3. `getServerSnapshot` devolve sempre a lista vazia, pelo que o HTML do
  *     servidor e a primeira renderização no cliente coincidem — sem mismatch.
  *
- * Guardamos apenas `{ productId, quantity }`; o preço e o nome são resolvidos
- * a partir do catálogo em código, e o servidor volta a validá-los no checkout.
+ * Guardamos apenas `{ productId, quantity, selection? }`; o preço é sempre
+ * recalculado a partir do catálogo (`resolvePrice`, em `@/lib/products`), e o
+ * servidor volta a validá-lo no checkout — nunca confiamos num preço vindo do
+ * cliente ou do localStorage.
+ *
+ * Uma linha do carrinho é identificada por `productId` **e** pela
+ * configuração escolhida: o mesmo produto com dois conjuntos de extras
+ * diferentes são duas linhas distintas, não uma quantidade de duas.
  */
 
-const STORAGE_KEY = "dl.cart.v1";
+const STORAGE_KEY = "dl.cart.v2";
 const MAX_QUANTITY = 20;
 
-export type StoredLine = { productId: string; quantity: number };
+export type StoredLine = {
+  productId: string;
+  quantity: number;
+  /** Ausente para produtos sem configurador (preço fixo de nível único) */
+  selection?: ConfigSelection;
+};
+
+/** Identifica univocamente uma linha — usado para juntar/encontrar linhas. */
+export function lineKey(productId: string, selection?: ConfigSelection): string {
+  if (!selection) return productId;
+  if (selection.kind === "tier") return `${productId}::tier:${selection.levelIndex}`;
+  // Ordenar os ids torna a chave insensível à ordem em que as opções foram
+  // marcadas — a mesma escolha produz sempre a mesma chave.
+  return `${productId}::features:${[...selection.optionIds].sort().join(",")}`;
+}
 
 export type CartAction =
-  | { type: "add"; productId: string; quantity: number }
-  | { type: "setQuantity"; productId: string; quantity: number }
-  | { type: "remove"; productId: string }
+  | { type: "add"; productId: string; quantity: number; selection?: ConfigSelection }
+  | {
+      type: "setQuantity";
+      productId: string;
+      selection: ConfigSelection | undefined;
+      quantity: number;
+    }
+  | { type: "remove"; productId: string; selection?: ConfigSelection }
   | { type: "clear" };
 
 /** Referência estável partilhada por todos os `getServerSnapshot`. */
@@ -32,13 +59,36 @@ let lines: StoredLine[] = EMPTY;
 let hydrated = false;
 const listeners = new Set<() => void>();
 
+function isValidSelection(value: unknown): value is ConfigSelection {
+  const selection = value as ConfigSelection | null;
+  if (!selection || typeof selection !== "object") return false;
+  if (selection.kind === "tier") {
+    return Number.isInteger(selection.levelIndex) && selection.levelIndex >= 0;
+  }
+  if (selection.kind === "features") {
+    return (
+      Array.isArray(selection.optionIds) &&
+      selection.optionIds.every((id) => typeof id === "string")
+    );
+  }
+  return false;
+}
+
 function isValidLine(value: unknown): value is StoredLine {
   const line = value as StoredLine | null;
-  return (
-    typeof line?.productId === "string" &&
-    Number.isFinite(line?.quantity) &&
-    line.quantity > 0
-  );
+  if (
+    typeof line?.productId !== "string" ||
+    !Number.isFinite(line?.quantity) ||
+    line.quantity <= 0
+  ) {
+    return false;
+  }
+  // `selection` é opcional, mas se estiver presente tem de ter forma válida —
+  // o catálogo pode já não reconhecer os ids (produto/opções removidos desde
+  // a última visita); isso é tratado mais tarde por `resolvePrice`, que
+  // devolve `{ ok: false }` e a linha é descartada na leitura do contexto.
+  if (line.selection !== undefined && !isValidSelection(line.selection)) return false;
+  return true;
 }
 
 function readStorage(): StoredLine[] {
@@ -76,30 +126,37 @@ function emit() {
 function reduce(state: StoredLine[], action: CartAction): StoredLine[] {
   switch (action.type) {
     case "add": {
-      const existing = state.find((line) => line.productId === action.productId);
+      const key = lineKey(action.productId, action.selection);
+      const existing = state.find((line) => lineKey(line.productId, line.selection) === key);
       if (!existing) {
-        return [...state, { productId: action.productId, quantity: action.quantity }];
+        return [
+          ...state,
+          { productId: action.productId, quantity: action.quantity, selection: action.selection },
+        ];
       }
       return state.map((line) =>
-        line.productId === action.productId
+        lineKey(line.productId, line.selection) === key
           ? { ...line, quantity: Math.min(MAX_QUANTITY, line.quantity + action.quantity) }
           : line
       );
     }
 
     case "setQuantity": {
+      const key = lineKey(action.productId, action.selection);
       if (action.quantity <= 0) {
-        return state.filter((line) => line.productId !== action.productId);
+        return state.filter((line) => lineKey(line.productId, line.selection) !== key);
       }
       return state.map((line) =>
-        line.productId === action.productId
+        lineKey(line.productId, line.selection) === key
           ? { ...line, quantity: Math.min(MAX_QUANTITY, action.quantity) }
           : line
       );
     }
 
-    case "remove":
-      return state.filter((line) => line.productId !== action.productId);
+    case "remove": {
+      const key = lineKey(action.productId, action.selection);
+      return state.filter((line) => lineKey(line.productId, line.selection) !== key);
+    }
 
     case "clear":
       return EMPTY;
