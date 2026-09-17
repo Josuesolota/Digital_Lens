@@ -31,6 +31,10 @@ import { cn } from "@/lib/utils";
  * (para os pontos, só visíveis em mobile onde cabe um cartão de cada vez) do
  * cartão cujo `offsetLeft` está mais perto do `scrollLeft` actual.
  */
+/** Intervalo entre avanços automáticos e por quanto tempo uma interacção manual o suspende. */
+const AUTOPLAY_INTERVAL_MS = 4500;
+const AUTOPLAY_RESUME_DELAY_MS = 6000;
+
 export function Services() {
   const { locale, dictionary: t } = useLocale();
   const pillars = localizePillars(SERVICE_PILLARS, locale);
@@ -39,6 +43,9 @@ export function Services() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
+  const [inView, setInView] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const resumeTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const track = trackRef.current;
@@ -86,6 +93,69 @@ export function Services() {
     };
   }, []);
 
+  // Só reproduz automaticamente com a secção visível — poupa trabalho fora do
+  // ecrã e evita saltos de scroll que o visitante nunca chega a ver.
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { threshold: 0.4 }
+    );
+    observer.observe(track);
+    return () => observer.disconnect();
+  }, []);
+
+  function pauseAutoplay() {
+    setPaused(true);
+    window.clearTimeout(resumeTimer.current);
+  }
+
+  /** Pausa por uma interacção pontual (arrasto, clique numa seta/ponto) — retoma sozinho passado um tempo. */
+  function pauseAutoplayTemporarily() {
+    setPaused(true);
+    window.clearTimeout(resumeTimer.current);
+    resumeTimer.current = window.setTimeout(() => setPaused(false), AUTOPLAY_RESUME_DELAY_MS);
+  }
+
+  function resumeAutoplay() {
+    setPaused(false);
+    window.clearTimeout(resumeTimer.current);
+  }
+
+  useEffect(() => () => window.clearTimeout(resumeTimer.current), []);
+
+  // Avanço automático: reproduz sozinho, sem depender de o visitante arrastar
+  // o carrossel. Pára com `prefers-reduced-motion`, com o separador fora do
+  // ecrã, com o separador da aba escondido, ou enquanto alguém interage
+  // (arrasto, seta, ponto) — e retoma sozinho depois de uma pausa.
+  useEffect(() => {
+    if (!inView || paused) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (document.visibilityState === "hidden") return;
+
+    const id = window.setInterval(() => {
+      const track = trackRef.current;
+      if (!track) return;
+      const max = track.scrollWidth - track.clientWidth;
+      if (track.scrollLeft >= max - 1) {
+        track.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        scrollByOne(1);
+      }
+    }, AUTOPLAY_INTERVAL_MS);
+
+    function onVisibilityChange() {
+      if (document.visibilityState === "hidden") window.clearInterval(id);
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [inView, paused]);
+
   function scrollToIndex(index: number) {
     const card = cardRefs.current[index];
     card?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
@@ -109,7 +179,12 @@ export function Services() {
   }
 
   return (
-    <section id="servicos" className="relative py-24 lg:py-32">
+    <section
+      id="servicos"
+      className="relative py-24 lg:py-32"
+      onMouseEnter={pauseAutoplay}
+      onMouseLeave={resumeAutoplay}
+    >
       <Container className="flex flex-col gap-10">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <SectionHeading
@@ -129,19 +204,26 @@ export function Services() {
               direction="prev"
               label={t.servicesSection.prev}
               disabled={atStart}
-              onClick={() => scrollByOne(-1)}
+              onClick={() => {
+                pauseAutoplayTemporarily();
+                scrollByOne(-1);
+              }}
             />
             <CarouselArrow
               direction="next"
               label={t.servicesSection.next}
               disabled={atEnd}
-              onClick={() => scrollByOne(1)}
+              onClick={() => {
+                pauseAutoplayTemporarily();
+                scrollByOne(1);
+              }}
             />
           </div>
         </div>
 
         <div
           ref={trackRef}
+          onPointerDown={pauseAutoplayTemporarily}
           className="-mx-5 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth px-5 pb-2 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10 [&::-webkit-scrollbar]:hidden"
         >
           {pillars.map((pillar, index) => (
@@ -208,7 +290,10 @@ export function Services() {
             <button
               key={pillar.slug}
               type="button"
-              onClick={() => scrollToIndex(index)}
+              onClick={() => {
+                pauseAutoplayTemporarily();
+                scrollToIndex(index);
+              }}
               aria-label={t.servicesSection.goTo(pillar.title)}
               aria-current={index === activeIndex}
               className={cn(
