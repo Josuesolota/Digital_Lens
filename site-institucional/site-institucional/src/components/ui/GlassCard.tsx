@@ -23,7 +23,7 @@ export function GlassCard({
       className={cn(
         "glass relative rounded-2xl transition-all duration-500",
         interactive &&
-          "hover:-translate-y-1 hover:border-white/[0.14] hover:shadow-[0_28px_70px_-32px_rgba(124,58,237,0.6)]",
+          "hover:-translate-y-1 hover:border-hairline-2 hover:shadow-[0_28px_70px_-32px_rgba(124,58,237,0.6)]",
         className
       )}
       {...props}

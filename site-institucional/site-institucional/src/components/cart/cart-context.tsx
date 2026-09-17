@@ -10,6 +10,8 @@ import {
 } from "react";
 import { getProductById, resolvePrice, type ConfigSelection, type Product } from "@/lib/products";
 import { cartStore, hydrationStore, lineKey } from "@/lib/cart-store";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { localizeProduct } from "@/lib/i18n/localize";
 
 /**
  * Contexto do carrinho.
@@ -51,6 +53,7 @@ type CartContextValue = {
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { locale } = useLocale();
   const stored = useSyncExternalStore(
     cartStore.subscribe,
     cartStore.getSnapshot,
@@ -64,18 +67,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const [isOpen, setIsOpen] = useState(false);
 
+  // Localizar o produto ANTES de resolver o preço: `resolvePrice` lê os
+  // rótulos das opções escolhidas directamente do configurador do produto
+  // recebido, por isso `summary` (ex.: "Até 6 páginas, Design original")
+  // já sai no idioma certo sem tocar em `resolvePrice`.
   const lines = useMemo<CartLine[]>(
     () =>
       stored.flatMap((line) => {
         const product = getProductById(line.productId);
         if (!product) return [];
-        const resolution = resolvePrice(product, line.selection);
+        const localizedProduct = localizeProduct(product, locale);
+        const resolution = resolvePrice(localizedProduct, line.selection);
         // Selecção inválida (catálogo mudou entretanto, dados corrompidos) ou
         // produto sob orçamento: a linha não sobrevive à leitura do carrinho.
         if (!resolution.ok) return [];
         return [
           {
-            product,
+            product: localizedProduct,
             quantity: line.quantity,
             selection: line.selection,
             unitPrice: resolution.price,
@@ -83,7 +91,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           },
         ];
       }),
-    [stored]
+    [stored, locale]
   );
 
   const value = useMemo<CartContextValue>(() => {

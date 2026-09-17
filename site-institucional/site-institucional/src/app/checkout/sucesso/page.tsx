@@ -8,11 +8,16 @@ import { ClearCartOnSuccess } from "@/components/cart/ClearCartOnSuccess";
 import { isDatabaseConfigured } from "@/lib/db";
 import { findOrderBySession } from "@/lib/db/queries";
 import { formatPrice } from "@/lib/products";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
 
-export const metadata: Metadata = {
-  title: "Pagamento concluído",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return {
+    title: t.pages.checkoutSuccess.title,
+    robots: { index: false, follow: false },
+  };
+}
 
 // Depende do `session_id` do Stripe — nunca deve ser servida a partir de cache.
 export const dynamic = "force-dynamic";
@@ -21,6 +26,7 @@ type PageProps = { searchParams: Promise<{ session_id?: string }> };
 
 export default async function SucessoPage({ searchParams }: PageProps) {
   const { session_id: sessionId } = await searchParams;
+  const t = getDictionary(await getLocale());
 
   // Leitura meramente informativa: a confirmação real do pagamento vem do
   // webhook do Stripe, nunca desta página (que qualquer pessoa pode abrir).
@@ -42,18 +48,17 @@ export default async function SucessoPage({ searchParams }: PageProps) {
 
           <div className="flex flex-col gap-2">
             <h1 className="font-display text-2xl font-semibold text-fog-50">
-              Pagamento recebido
+              {t.pages.checkoutSuccess.heading}
             </h1>
             <p className="text-balance text-sm leading-relaxed text-fog-400">
-              Obrigado pela confiança. Vai receber o recibo por e-mail e a nossa
-              equipa entra em contacto em até 1 dia útil para agendar o arranque.
+              {t.pages.checkoutSuccess.description}
             </p>
           </div>
 
           {order && (
-            <div className="w-full border-y border-white/[0.08] py-5 text-left">
+            <div className="w-full border-y border-hairline-1 py-5 text-left">
               <p className="eyebrow mb-3 text-fog-600">
-                Encomenda {order.id.slice(0, 8).toUpperCase()}
+                {t.pages.checkoutSuccess.order(order.id.slice(0, 8).toUpperCase())}
               </p>
               <ul className="flex flex-col gap-2">
                 {order.items.map((item) => (
@@ -73,8 +78,8 @@ export default async function SucessoPage({ searchParams }: PageProps) {
                   </li>
                 ))}
               </ul>
-              <div className="mt-4 flex items-baseline justify-between border-t border-white/[0.08] pt-3">
-                <span className="text-sm font-medium text-fog-50">Total</span>
+              <div className="mt-4 flex items-baseline justify-between border-t border-hairline-1 pt-3">
+                <span className="text-sm font-medium text-fog-50">{t.pages.checkoutSuccess.total}</span>
                 <span className="font-mono text-base font-semibold text-fog-50">
                   {formatPrice(order.amount_total, order.currency.toUpperCase())}
                 </span>
@@ -84,13 +89,13 @@ export default async function SucessoPage({ searchParams }: PageProps) {
 
           <p className="flex items-center gap-2 text-xs text-fog-600">
             <Mail size={13} />
-            O recibo chega em minutos. Verifique também a pasta de spam.
+            {t.pages.checkoutSuccess.receiptNote}
           </p>
 
           <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
-            <Button href="/conta">As minhas encomendas</Button>
+            <Button href="/conta">{t.pages.checkoutSuccess.myOrders}</Button>
             <Button href="/" variant="secondary">
-              Voltar ao início
+              {t.pages.checkoutSuccess.backHome}
             </Button>
           </div>
         </GlassCard>

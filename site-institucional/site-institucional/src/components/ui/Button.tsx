@@ -21,12 +21,12 @@ const variants = {
     "hover:bg-right hover:-translate-y-0.5 hover:shadow-[0_16px_50px_-12px_rgba(212,38,196,0.7)] active:translate-y-0",
   /** Acção secundária — vidro com contorno subtil */
   secondary:
-    "glass text-fog-50 hover:border-white/20 hover:bg-white/[0.07] hover:-translate-y-0.5 active:translate-y-0",
+    "glass text-fog-50 hover:border-hairline-3 hover:bg-surface-2 hover:-translate-y-0.5 active:translate-y-0",
   /** Terciária — sem caixa */
   ghost: "text-fog-400 hover:text-fog-50",
   /** Destrutiva/neutra sobre fundos claros invertidos */
   outline:
-    "border border-white/15 text-fog-200 hover:border-lens-violet-400/60 hover:text-fog-50",
+    "border border-hairline-2 text-fog-200 hover:border-lens-violet-400/60 hover:text-fog-50",
 };
 
 type Variant = keyof typeof variants;

@@ -5,6 +5,7 @@ import { m } from "framer-motion";
 import { AlertCircle, CheckCircle2, Send } from "lucide-react";
 import { submitContactForm, type ContactFormState } from "@/app/actions";
 import { Button } from "@/components/ui/Button";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 import { cn } from "@/lib/utils";
 
 const initialState: ContactFormState = { status: "idle" };
@@ -16,6 +17,7 @@ type ContactFormProps = {
 };
 
 export function ContactForm({ defaultSubject, className }: ContactFormProps) {
+  const { dictionary: t } = useLocale();
   const [state, formAction, pending] = useActionState(
     submitContactForm,
     initialState
@@ -36,7 +38,7 @@ export function ContactForm({ defaultSubject, className }: ContactFormProps) {
           <CheckCircle2 size={26} className="text-success-400" />
         </span>
         <h3 className="font-display text-xl font-semibold text-fog-50">
-          Mensagem enviada
+          {t.contactForm.messageSent}
         </h3>
         <p className="max-w-sm text-sm text-fog-400">{state.message}</p>
       </m.div>
@@ -63,7 +65,7 @@ export function ContactForm({ defaultSubject, className }: ContactFormProps) {
         <Field
           id="name"
           name="name"
-          label="Nome"
+          label={t.contactForm.nameLabel}
           autoComplete="name"
           required
           error={state.fieldErrors?.name}
@@ -72,7 +74,7 @@ export function ContactForm({ defaultSubject, className }: ContactFormProps) {
           id="email"
           name="email"
           type="email"
-          label="E-mail"
+          label={t.contactForm.emailLabel}
           autoComplete="email"
           required
           error={state.fieldErrors?.email}
@@ -82,15 +84,15 @@ export function ContactForm({ defaultSubject, className }: ContactFormProps) {
       <Field
         id="subject"
         name="subject"
-        label="Assunto"
+        label={t.contactForm.subjectLabel}
         defaultValue={defaultSubject}
-        placeholder="Ex.: Site institucional para clínica"
+        placeholder={t.contactForm.subjectPlaceholder}
         error={state.fieldErrors?.subject}
       />
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="message" className="text-sm font-medium text-fog-200">
-          Conte-nos sobre o projeto
+          {t.contactForm.projectLabel}
           <span aria-hidden className="ml-1 text-lens-magenta-400">*</span>
         </label>
         <textarea
@@ -101,7 +103,7 @@ export function ContactForm({ defaultSubject, className }: ContactFormProps) {
           rows={5}
           aria-invalid={Boolean(state.fieldErrors?.message)}
           aria-describedby={state.fieldErrors?.message ? "message-error" : undefined}
-          placeholder="Objetivo, prazo e orçamento aproximado ajudam-nos a responder com precisão."
+          placeholder={t.contactForm.projectPlaceholder}
           className={inputClasses(Boolean(state.fieldErrors?.message))}
         />
         {state.fieldErrors?.message && (
@@ -120,25 +122,22 @@ export function ContactForm({ defaultSubject, className }: ContactFormProps) {
       )}
 
       <Button type="submit" disabled={pending} className="mt-1 w-full sm:w-auto sm:self-start">
-        {pending ? "A enviar…" : "Enviar mensagem"}
+        {pending ? t.contactForm.sending : t.contactForm.send}
         {!pending && <Send size={15} />}
       </Button>
 
-      <p className="text-xs leading-relaxed text-fog-600">
-        Ao enviar, concorda que a Digital Lens use estes dados apenas para
-        responder ao seu pedido.
-      </p>
+      <p className="text-xs leading-relaxed text-fog-600">{t.contactForm.privacyNote}</p>
     </form>
   );
 }
 
 function inputClasses(hasError: boolean) {
   return cn(
-    "w-full rounded-xl border bg-white/[0.03] px-4 py-3 text-sm text-fog-50 transition-colors",
+    "w-full rounded-xl border bg-surface-1 px-4 py-3 text-sm text-fog-50 transition-colors",
     "placeholder:text-fog-600 focus:outline-none",
     hasError
       ? "border-danger-400/60 focus:border-danger-400"
-      : "border-white/[0.10] focus:border-lens-violet-400"
+      : "border-hairline-2 focus:border-lens-violet-400"
   );
 }
 

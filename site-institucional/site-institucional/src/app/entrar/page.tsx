@@ -5,12 +5,17 @@ import { loginAction } from "@/app/auth-actions";
 import { AuthForm } from "@/components/forms/AuthForm";
 import { Container } from "@/components/ui/Container";
 import { AuroraBackground } from "@/components/ui/AuroraBackground";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
 
-export const metadata: Metadata = {
-  title: "Entrar",
-  description: "Aceda à sua área de cliente Digital Lens.",
-  alternates: { canonical: "/entrar" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return {
+    title: t.pages.login.title,
+    description: t.pages.login.metaDescription,
+    alternates: { canonical: "/entrar" },
+  };
+}
 
 type PageProps = { searchParams: Promise<{ redirectTo?: string }> };
 

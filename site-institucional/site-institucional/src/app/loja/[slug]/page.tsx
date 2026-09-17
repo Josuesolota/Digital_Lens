@@ -11,10 +11,12 @@ import { ProductPurchasePanel } from "@/components/store/ProductPurchasePanel";
 import {
   getProduct,
   getProductsByPillar,
-  pillarTitle,
   PRODUCT_SLUGS,
 } from "@/lib/products";
 import { absoluteUrl, siteConfig } from "@/lib/site-config";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
+import { localizeProduct, localizeProducts, localizedPillarTitle } from "@/lib/i18n/localize";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -24,8 +26,9 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProduct(slug);
-  if (!product) return {};
+  const rawProduct = getProduct(slug);
+  if (!rawProduct) return {};
+  const product = localizeProduct(rawProduct, await getLocale());
 
   return {
     title: product.name,
@@ -41,12 +44,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProdutoPage({ params }: PageProps) {
   const { slug } = await params;
-  const product = getProduct(slug);
-  if (!product) notFound();
+  const rawProduct = getProduct(slug);
+  if (!rawProduct) notFound();
 
-  const related = getProductsByPillar(product.pillar)
-    .filter((item) => item.id !== product.id)
-    .slice(0, 3);
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const product = localizeProduct(rawProduct, locale);
+  const related = localizeProducts(
+    getProductsByPillar(product.pillar).filter((item) => item.id !== product.id).slice(0, 3),
+    locale
+  );
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -91,7 +98,7 @@ export default async function ProdutoPage({ params }: PageProps) {
             className="group mb-8 flex w-fit items-center gap-2 text-sm text-fog-400 transition-colors hover:text-fog-50"
           >
             <ArrowLeft size={15} className="transition-transform group-hover:-translate-x-0.5" />
-            Voltar à loja
+            {t.pages.productDetail.backToStore}
           </Link>
 
           <div className="grid gap-10 lg:grid-cols-[1.25fr_0.9fr] lg:gap-14">
@@ -100,7 +107,7 @@ export default async function ProdutoPage({ params }: PageProps) {
                 href={`/servicos/${product.pillar}`}
                 className="eyebrow w-fit text-lens-violet-400 transition-colors hover:text-lens-magenta-400"
               >
-                {pillarTitle(product.pillar)}
+                {localizedPillarTitle(product.pillar, locale)}
               </Link>
 
               <h1 className="text-balance font-display text-3xl font-semibold leading-tight text-fog-50 sm:text-4xl lg:text-5xl">
@@ -112,7 +119,7 @@ export default async function ProdutoPage({ params }: PageProps) {
               </p>
 
               <div className="mt-2">
-                <h2 className="eyebrow mb-4 text-fog-600">O que está incluído</h2>
+                <h2 className="eyebrow mb-4 text-fog-600">{t.pages.productDetail.whatIncluded}</h2>
                 <ul className="grid gap-3 sm:grid-cols-2">
                   {product.features.map((feature) => (
                     <li
@@ -133,33 +140,32 @@ export default async function ProdutoPage({ params }: PageProps) {
                 {product.priceRange === null ? (
                   <>
                     <div className="flex flex-col gap-1">
-                      <span className="eyebrow text-fog-600">Investimento</span>
+                      <span className="eyebrow text-fog-600">{t.pages.productDetail.investment}</span>
                       <span className="font-display text-2xl font-semibold text-fog-50">
-                        Sob orçamento
+                        {t.pages.productDetail.onBudget}
                       </span>
                     </div>
                     <p className="text-sm leading-relaxed text-fog-400">
-                      O âmbito destes projetos varia muito. Conte-nos o que precisa
-                      e enviamos uma proposta com preço e prazo fechados.
+                      {t.pages.productDetail.budgetDescription}
                     </p>
                     <Button href={`/contacto?servico=${product.slug}`} className="w-full">
-                      Pedir orçamento
+                      {t.pages.productDetail.requestQuote}
                     </Button>
                   </>
                 ) : (
                   <ProductPurchasePanel product={product} />
                 )}
 
-                <div className="border-t border-white/[0.08] pt-5">
+                <div className="border-t border-hairline-1 pt-5">
                   <p className="text-xs leading-relaxed text-fog-600">
-                    Precisa de algo diferente?{" "}
+                    {t.pages.productDetail.needSomethingDifferent}{" "}
                     <Link
                       href="/contacto"
                       className="text-fog-200 underline underline-offset-2 transition-colors hover:text-fog-50"
                     >
-                      Fale connosco
+                      {t.pages.productDetail.talkToUsLink}
                     </Link>{" "}
-                    e ajustamos o âmbito.
+                    {t.pages.productDetail.adjustScopeSuffix}
                   </p>
                 </div>
               </GlassCard>
@@ -172,7 +178,7 @@ export default async function ProdutoPage({ params }: PageProps) {
         <section className="pb-24">
           <Container className="flex flex-col gap-8">
             <h2 className="font-display text-xl font-semibold text-fog-50">
-              Também em {pillarTitle(product.pillar).toLowerCase()}
+              {t.pages.productDetail.alsoIn(localizedPillarTitle(product.pillar, locale).toLowerCase())}
             </h2>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {related.map((item, index) => (

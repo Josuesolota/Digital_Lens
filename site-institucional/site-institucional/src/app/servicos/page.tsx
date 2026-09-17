@@ -7,15 +7,24 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { AuroraBackground } from "@/components/ui/AuroraBackground";
 import { Button } from "@/components/ui/Button";
 import { SERVICE_PILLARS } from "@/lib/services";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
+import { localizePillars } from "@/lib/i18n/localize";
 
-export const metadata: Metadata = {
-  title: "Serviços",
-  description:
-    "Desenvolvimento web, inteligência artificial, marketing digital e locução profissional. Conheça todos os serviços da Digital Lens.",
-  alternates: { canonical: "/servicos" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return {
+    title: t.pages.servicesIndex.title,
+    description: t.pages.servicesIndex.metaDescription,
+    alternates: { canonical: "/servicos" },
+  };
+}
 
-export default function ServicosPage() {
+export default async function ServicosPage() {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const pillars = localizePillars(SERVICE_PILLARS, locale);
+
   return (
     <>
       <section className="relative overflow-hidden pb-16 pt-16 sm:pt-20">
@@ -23,21 +32,21 @@ export default function ServicosPage() {
         <Container className="relative">
           <SectionHeading
             as="h1"
-            eyebrow="Serviços"
+            eyebrow={t.pages.servicesIndex.eyebrow}
             title={
               <>
-                Tudo o que a sua marca precisa,{" "}
-                <span className="text-gradient">sob uma só lente.</span>
+                {t.pages.servicesIndex.titleStart}{" "}
+                <span className="text-gradient">{t.pages.servicesIndex.titleHighlight}</span>
               </>
             }
-            description="Quatro áreas de especialidade e vinte e dois serviços concretos. Escolha um ponto de partida — nós tratamos das ligações."
+            description={t.pages.servicesIndex.description}
           />
         </Container>
       </section>
 
       <section className="pb-24 lg:pb-32">
         <Container className="flex flex-col gap-16">
-          {SERVICE_PILLARS.map((pillar) => (
+          {pillars.map((pillar) => (
             <article key={pillar.slug} id={pillar.slug} className="scroll-mt-28">
               <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
                 <div className="flex items-center gap-4">
@@ -62,7 +71,7 @@ export default function ServicosPage() {
                   href={`/servicos/${pillar.slug}`}
                   className="group flex items-center gap-1.5 text-sm text-fog-400 transition-colors hover:text-fog-50"
                 >
-                  Ver detalhe
+                  {t.pages.servicesIndex.viewDetail}
                   <ArrowUpRight
                     size={15}
                     className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
@@ -88,14 +97,13 @@ export default function ServicosPage() {
 
           <div className="glass flex flex-col items-center gap-5 rounded-3xl p-10 text-center">
             <h2 className="max-w-md text-balance font-display text-2xl font-semibold text-fog-50">
-              Não encontrou exactamente o que procura?
+              {t.pages.servicesIndex.notFoundTitle}
             </h2>
             <p className="max-w-md text-sm text-fog-400">
-              A maioria dos projetos combina mais do que uma área. Descreva o que
-              precisa e desenhamos o âmbito consigo.
+              {t.pages.servicesIndex.notFoundDescription}
             </p>
             <Button href="/contacto" size="lg">
-              Falar connosco
+              {t.pages.servicesIndex.talkToUs}
             </Button>
           </div>
         </Container>

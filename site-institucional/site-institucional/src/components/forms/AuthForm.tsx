@@ -6,6 +6,7 @@ import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { LensMark } from "@/components/ui/LensMark";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 import type { AuthFormState } from "@/app/auth-actions";
 import { cn } from "@/lib/utils";
 
@@ -18,30 +19,10 @@ type AuthFormProps = {
   redirectTo?: string;
 };
 
-const COPY = {
-  login: {
-    title: "Entrar na sua conta",
-    subtitle: "Acompanhe encomendas, faturas e o estado dos seus projetos.",
-    submit: "Entrar",
-    submitting: "A entrar…",
-    footer: "Ainda não tem conta?",
-    footerHref: "/registar",
-    footerLabel: "Criar conta",
-  },
-  register: {
-    title: "Criar conta",
-    subtitle: "Leva menos de um minuto e dá-lhe acesso à área de cliente.",
-    submit: "Criar conta",
-    submitting: "A criar conta…",
-    footer: "Já tem conta?",
-    footerHref: "/entrar",
-    footerLabel: "Entrar",
-  },
-} as const;
-
 export function AuthForm({ mode, action, redirectTo }: AuthFormProps) {
   const [state, formAction, pending] = useActionState(action, initialState);
-  const copy = COPY[mode];
+  const { dictionary: t } = useLocale();
+  const copy = { ...t.auth[mode], footerHref: mode === "login" ? "/registar" : "/entrar" };
 
   return (
     <GlassCard className="w-full max-w-md p-8">
@@ -60,7 +41,7 @@ export function AuthForm({ mode, action, redirectTo }: AuthFormProps) {
           <Field
             id="name"
             name="name"
-            label="Nome"
+            label={t.auth.nameLabel}
             autoComplete="name"
             required
             error={state.fieldErrors?.name}
@@ -71,7 +52,7 @@ export function AuthForm({ mode, action, redirectTo }: AuthFormProps) {
           id="email"
           name="email"
           type="email"
-          label="E-mail"
+          label={t.auth.emailLabel}
           autoComplete="email"
           required
           error={state.fieldErrors?.email}
@@ -81,10 +62,10 @@ export function AuthForm({ mode, action, redirectTo }: AuthFormProps) {
           id="password"
           name="password"
           type="password"
-          label="Palavra-passe"
+          label={t.auth.passwordLabel}
           autoComplete={mode === "register" ? "new-password" : "current-password"}
           required
-          hint={mode === "register" ? "Mínimo 8 caracteres." : undefined}
+          hint={mode === "register" ? t.auth.passwordHint : undefined}
           error={state.fieldErrors?.password}
         />
 
@@ -93,7 +74,7 @@ export function AuthForm({ mode, action, redirectTo }: AuthFormProps) {
             id="confirm"
             name="confirm"
             type="password"
-            label="Confirmar palavra-passe"
+            label={t.auth.confirmPasswordLabel}
             autoComplete="new-password"
             required
             error={state.fieldErrors?.confirm}
@@ -157,10 +138,10 @@ function Field({ id, label, required, error, hint, type = "text", ...rest }: Fie
         aria-invalid={Boolean(error)}
         aria-describedby={describedBy || undefined}
         className={cn(
-          "w-full rounded-xl border bg-white/[0.03] px-4 py-3 text-sm text-fog-50 transition-colors focus:outline-none",
+          "w-full rounded-xl border bg-surface-1 px-4 py-3 text-sm text-fog-50 transition-colors focus:outline-none",
           error
             ? "border-danger-400/60 focus:border-danger-400"
-            : "border-white/[0.10] focus:border-lens-violet-400"
+            : "border-hairline-2 focus:border-lens-violet-400"
         )}
         {...rest}
       />

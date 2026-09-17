@@ -10,25 +10,33 @@ import { Button } from "@/components/ui/Button";
 import { isDatabaseConfigured } from "@/lib/db";
 import { findOrdersByUser, type OrderRecord } from "@/lib/db/queries";
 import { formatPrice } from "@/lib/products";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
 
-export const metadata: Metadata = {
-  title: "A minha conta",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return {
+    title: t.pages.account.title,
+    robots: { index: false, follow: false },
+  };
+}
 
 // Depende da sessão do utilizador — nunca estática.
 export const dynamic = "force-dynamic";
 
-const STATUS_LABELS: Record<OrderRecord["status"], { label: string; className: string }> = {
-  pending: { label: "Aguarda pagamento", className: "text-fog-400 border-white/15" },
-  paid: { label: "Pago", className: "text-success-400 border-success-400/40" },
-  failed: { label: "Falhou", className: "text-danger-400 border-danger-400/40" },
-  refunded: { label: "Reembolsado", className: "text-fog-400 border-white/15" },
-};
-
 export default async function ContaPage() {
   const session = await getSession();
   if (!session?.user) redirect("/entrar?redirectTo=/conta");
+
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+
+  const STATUS_LABELS: Record<OrderRecord["status"], { label: string; className: string }> = {
+    pending: { label: t.pages.account.statusPending, className: "text-fog-400 border-hairline-2" },
+    paid: { label: t.pages.account.statusPaid, className: "text-success-400 border-success-400/40" },
+    failed: { label: t.pages.account.statusFailed, className: "text-danger-400 border-danger-400/40" },
+    refunded: { label: t.pages.account.statusRefunded, className: "text-fog-400 border-hairline-2" },
+  };
 
   const orders = isDatabaseConfigured()
     ? await findOrdersByUser(session.user.id).catch(() => [])
@@ -39,37 +47,35 @@ export default async function ContaPage() {
       <Container className="flex flex-col gap-10">
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-col gap-1.5">
-            <span className="eyebrow text-lens-violet-400">Área de cliente</span>
+            <span className="eyebrow text-lens-violet-400">{t.pages.account.areaLabel}</span>
             <h1 className="font-display text-3xl font-semibold text-fog-50 sm:text-4xl">
-              Olá, {session.user.name?.split(" ")[0] ?? "cliente"}.
+              {t.pages.account.hello(session.user.name?.split(" ")[0] ?? t.pages.account.defaultCustomer)}
             </h1>
             <p className="text-sm text-fog-400">{session.user.email}</p>
           </div>
 
           <form action={logoutAction}>
             <Button type="submit" variant="outline" size="sm">
-              Terminar sessão
+              {t.pages.account.logout}
             </Button>
           </form>
         </header>
 
         <div className="flex flex-col gap-5">
           <h2 className="font-display text-xl font-semibold text-fog-50">
-            Encomendas
+            {t.pages.account.orders}
           </h2>
 
           {orders.length === 0 ? (
             <GlassCard className="flex flex-col items-center gap-5 p-12 text-center">
               <Package size={36} className="text-fog-600" strokeWidth={1.25} />
               <div className="flex flex-col gap-1.5">
-                <p className="font-medium text-fog-50">Ainda não há encomendas</p>
-                <p className="text-sm text-fog-400">
-                  Quando contratar um serviço, ele aparece aqui com o respetivo estado.
-                </p>
+                <p className="font-medium text-fog-50">{t.pages.account.noOrders}</p>
+                <p className="text-sm text-fog-400">{t.pages.account.noOrdersDescription}</p>
               </div>
               <Button href="/loja" size="sm">
                 <ShoppingBag size={15} />
-                Ver a loja
+                {t.pages.account.viewStore}
               </Button>
             </GlassCard>
           ) : (
@@ -94,7 +100,7 @@ export default async function ContaPage() {
                           {order.items.map((item) => item.name).join(", ")}
                         </p>
                         <p className="mt-1 text-xs text-fog-600">
-                          {new Date(order.created_at).toLocaleDateString("pt-AO", {
+                          {new Date(order.created_at).toLocaleDateString(t.pages.account.dateLocale, {
                             day: "2-digit",
                             month: "long",
                             year: "numeric",
@@ -114,14 +120,12 @@ export default async function ContaPage() {
         </div>
 
         <GlassCard className="flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center">
-          <p className="text-sm text-fog-400">
-            Precisa de alterar algo numa encomenda ou pedir uma fatura?
-          </p>
+          <p className="text-sm text-fog-400">{t.pages.account.needHelp}</p>
           <Link
             href="/contacto"
             className="shrink-0 text-sm text-fog-50 underline underline-offset-4 transition-colors hover:text-lens-violet-400"
           >
-            Falar connosco
+            {t.pages.account.talkToUs}
           </Link>
         </GlassCard>
       </Container>

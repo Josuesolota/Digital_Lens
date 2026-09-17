@@ -9,15 +9,12 @@ import { LensMark } from "@/components/ui/LensMark";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { CartButton } from "@/components/cart/CartButton";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { LocaleToggle } from "@/components/i18n/LocaleToggle";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 import { SERVICE_PILLARS } from "@/lib/services";
+import { localizePillars } from "@/lib/i18n/localize";
 import { cn } from "@/lib/utils";
-
-const LINKS = [
-  { href: "/servicos", label: "Serviços", hasMenu: true },
-  { href: "/loja", label: "Loja", hasMenu: false },
-  { href: "/#portfolio", label: "Portfólio", hasMenu: false },
-  { href: "/contacto", label: "Contacto", hasMenu: false },
-];
 
 type NavbarProps = {
   /** Nome do utilizador autenticado, ou `null` para visitante */
@@ -27,6 +24,15 @@ type NavbarProps = {
 export function Navbar({ userName }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const { locale, dictionary: t } = useLocale();
+  const pillars = localizePillars(SERVICE_PILLARS, locale);
+
+  const LINKS = [
+    { href: "/servicos", label: t.nav.services, hasMenu: true },
+    { href: "/loja", label: t.nav.store, hasMenu: false },
+    { href: "/#portfolio", label: t.nav.portfolio, hasMenu: false },
+    { href: "/contacto", label: t.nav.contact, hasMenu: false },
+  ];
 
   /*
    * Os menus fecham-se ao navegar. Em vez de um efeito que chama setState
@@ -81,7 +87,7 @@ export function Navbar({ userName }: NavbarProps) {
       className={cn(
         "sticky top-0 z-50 transition-all duration-300",
         scrolled
-          ? "border-b border-white/[0.08] bg-void-950/80 backdrop-blur-xl"
+          ? "border-b border-hairline-1 bg-void-950/80 backdrop-blur-xl"
           : "border-b border-transparent"
       )}
     >
@@ -89,7 +95,7 @@ export function Navbar({ userName }: NavbarProps) {
         <Link
           href="/"
           className="flex items-center gap-2.5"
-          aria-label={`Digital Lens — página inicial`}
+          aria-label={t.nav.homeAriaLabel}
         >
           <LensMark size={30} />
           <span className="whitespace-nowrap font-display text-[17px] font-semibold tracking-tight text-fog-50">
@@ -137,11 +143,11 @@ export function Navbar({ userName }: NavbarProps) {
                       className="glass absolute left-1/2 top-full w-[30rem] -translate-x-1/2 rounded-2xl p-2 shadow-[0_28px_70px_-24px_rgba(0,0,0,0.85)]"
                     >
                       <div className="grid grid-cols-2 gap-1">
-                        {SERVICE_PILLARS.map((pillar) => (
+                        {pillars.map((pillar) => (
                           <Link
                             key={pillar.slug}
                             href={`/servicos/${pillar.slug}`}
-                            className="group flex gap-3 rounded-xl p-3 transition-colors hover:bg-white/[0.06]"
+                            className="group flex gap-3 rounded-xl p-3 transition-colors hover:bg-surface-2"
                           >
                             <span
                               className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
@@ -182,24 +188,26 @@ export function Navbar({ userName }: NavbarProps) {
         </nav>
 
         <div className="flex items-center gap-1">
+          <LocaleToggle className="hidden sm:flex" />
+          <ThemeToggle className="hidden sm:block" />
           <CartButton />
 
           <Link
             href={userName ? "/conta" : "/entrar"}
-            className="hidden rounded-full p-2.5 text-fog-200 transition-colors hover:bg-white/5 hover:text-fog-50 sm:block"
-            aria-label={userName ? `Conta de ${userName}` : "Entrar na sua conta"}
+            className="hidden rounded-full p-2.5 text-fog-200 transition-colors hover:bg-surface-2 hover:text-fog-50 sm:block"
+            aria-label={userName ? t.nav.accountAria(userName) : t.nav.loginAria}
           >
             {userName ? <User size={19} strokeWidth={1.75} /> : <LogIn size={19} strokeWidth={1.75} />}
           </Link>
 
           <Button href="/contacto" size="sm" className="ml-1.5 hidden lg:inline-flex">
-            Iniciar projeto
+            {t.nav.startProject}
           </Button>
 
           <button
             onClick={openMobile}
-            className="rounded-full p-2.5 text-fog-200 transition-colors hover:bg-white/5 lg:hidden"
-            aria-label="Abrir menu"
+            className="rounded-full p-2.5 text-fog-200 transition-colors hover:bg-surface-2 lg:hidden"
+            aria-label={t.nav.openMenu}
             aria-expanded={mobileOpen}
           >
             <Menu size={21} />
@@ -223,13 +231,17 @@ export function Navbar({ userName }: NavbarProps) {
                   Digital Lens
                 </span>
               </Link>
-              <button
-                onClick={closeMobile}
-                className="rounded-full p-2.5 text-fog-200"
-                aria-label="Fechar menu"
-              >
-                <X size={21} />
-              </button>
+              <div className="flex items-center gap-1">
+                <LocaleToggle />
+                <ThemeToggle />
+                <button
+                  onClick={closeMobile}
+                  className="rounded-full p-2.5 text-fog-200"
+                  aria-label={t.nav.closeMenu}
+                >
+                  <X size={21} />
+                </button>
+              </div>
             </Container>
 
             <m.nav
@@ -239,12 +251,12 @@ export function Navbar({ userName }: NavbarProps) {
               variants={{ visible: { transition: { staggerChildren: 0.045 } } }}
             >
               <m.div variants={itemVariants} className="flex flex-col gap-2">
-                <span className="eyebrow mb-1 text-fog-600">Serviços</span>
-                {SERVICE_PILLARS.map((pillar) => (
+                <span className="eyebrow mb-1 text-fog-600">{t.nav.servicesEyebrow}</span>
+                {pillars.map((pillar) => (
                   <Link
                     key={pillar.slug}
                     href={`/servicos/${pillar.slug}`}
-                    className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-3"
+                    className="flex items-center gap-3 rounded-xl border border-hairline-1 bg-surface-1 p-3"
                   >
                     <span
                       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
@@ -263,15 +275,15 @@ export function Navbar({ userName }: NavbarProps) {
 
               <m.div variants={itemVariants} className="flex flex-col">
                 {[
-                  { href: "/loja", label: "Loja" },
-                  { href: "/#portfolio", label: "Portfólio" },
-                  { href: "/contacto", label: "Contacto" },
-                  { href: userName ? "/conta" : "/entrar", label: userName ? "A minha conta" : "Entrar" },
+                  { href: "/loja", label: t.nav.store },
+                  { href: "/#portfolio", label: t.nav.portfolio },
+                  { href: "/contacto", label: t.nav.contact },
+                  { href: userName ? "/conta" : "/entrar", label: userName ? t.nav.myAccount : t.nav.login },
                 ].map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="border-b border-white/[0.07] py-4 font-display text-2xl font-medium text-fog-50"
+                    className="border-b border-hairline-1 py-4 font-display text-2xl font-medium text-fog-50"
                   >
                     {link.label}
                   </Link>
@@ -280,7 +292,7 @@ export function Navbar({ userName }: NavbarProps) {
 
               <m.div variants={itemVariants}>
                 <Button href="/contacto" className="w-full" size="lg">
-                  Iniciar projeto
+                  {t.nav.startProject}
                 </Button>
               </m.div>
             </m.nav>

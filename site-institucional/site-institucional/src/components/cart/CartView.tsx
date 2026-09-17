@@ -7,10 +7,13 @@ import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { cartLineKey, useCart, type CartLine } from "@/components/cart/cart-context";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import { formatPrice, pillarTitle } from "@/lib/products";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { formatPrice } from "@/lib/products";
+import { localizedPillarTitle } from "@/lib/i18n/localize";
 
 /** Página completa do carrinho — a alternativa "larga" à gaveta lateral. */
 export function CartView() {
+  const { dictionary: t } = useLocale();
   const {
     lines,
     ready,
@@ -42,12 +45,12 @@ export function CartView() {
       });
       const data: { url?: string; error?: string } = await response.json();
       if (!response.ok || !data.url) {
-        setError(data.error ?? "Não foi possível iniciar o pagamento.");
+        setError(data.error ?? t.cart.paymentError);
         return;
       }
       window.location.href = data.url;
     } catch {
-      setError("Falha de rede. Verifique a ligação e tente novamente.");
+      setError(t.cart.networkError);
     } finally {
       setPending(false);
     }
@@ -55,7 +58,7 @@ export function CartView() {
 
   // Evita mostrar "carrinho vazio" antes de ler o localStorage.
   if (!ready) {
-    return <div className="h-40 animate-pulse rounded-2xl bg-white/[0.03]" />;
+    return <div className="h-40 animate-pulse rounded-2xl bg-surface-1" />;
   }
 
   if (lines.length === 0) {
@@ -64,13 +67,11 @@ export function CartView() {
         <ShoppingBag size={40} className="text-fog-600" strokeWidth={1.25} />
         <div className="flex flex-col gap-1.5">
           <h2 className="font-display text-xl font-semibold text-fog-50">
-            O seu carrinho está vazio
+            {t.cart.emptyHeading}
           </h2>
-          <p className="text-sm text-fog-400">
-            Explore os pacotes disponíveis e comece o seu projeto hoje.
-          </p>
+          <p className="text-sm text-fog-400">{t.cart.emptyDescription}</p>
         </div>
-        <Button href="/loja">Ver a loja</Button>
+        <Button href="/loja">{t.cart.viewStore}</Button>
       </GlassCard>
     );
   }
@@ -81,9 +82,9 @@ export function CartView() {
         {cancelled && (
           <p
             role="status"
-            className="rounded-xl border border-white/[0.10] bg-white/[0.03] px-4 py-3 text-sm text-fog-400"
+            className="rounded-xl border border-hairline-2 bg-surface-1 px-4 py-3 text-sm text-fog-400"
           >
-            Pagamento cancelado. Os itens continuam guardados no seu carrinho.
+            {t.cart.cancelledNotice}
           </p>
         )}
 
@@ -100,22 +101,19 @@ export function CartView() {
 
       <aside className="lg:sticky lg:top-24 lg:self-start">
         <GlassCard className="flex flex-col gap-4 p-6">
-          <h2 className="font-display text-lg font-semibold text-fog-50">Resumo</h2>
+          <h2 className="font-display text-lg font-semibold text-fog-50">{t.cart.summary}</h2>
 
           {oneTimeSubtotal > 0 && (
-            <Row label="Pagamento único" value={formatPrice(oneTimeSubtotal)} />
+            <Row label={t.cart.oneTime} value={formatPrice(oneTimeSubtotal)} />
           )}
           {monthlySubtotal > 0 && (
             <Row
-              label="Subscrição mensal"
-              value={`${formatPrice(monthlySubtotal)} / mês`}
+              label={t.cart.monthly}
+              value={`${formatPrice(monthlySubtotal)} ${t.cart.perMonth}`}
             />
           )}
 
-          <p className="text-xs leading-relaxed text-fog-600">
-            IVA calculado no checkout. Serviços mensais e pagamentos únicos são
-            finalizados em compras separadas.
-          </p>
+          <p className="text-xs leading-relaxed text-fog-600">{t.cart.vatNoteFull}</p>
 
           {error && (
             <p
@@ -127,13 +125,13 @@ export function CartView() {
           )}
 
           <Button type="button" onClick={checkout} disabled={pending} className="w-full">
-            {pending ? "A abrir pagamento…" : "Finalizar compra"}
+            {pending ? t.cart.openingPayment : t.cart.checkout}
           </Button>
           <Link
             href="/loja"
             className="text-center text-xs text-fog-400 transition-colors hover:text-fog-50"
           >
-            Continuar a comprar
+            {t.cart.continueShopping}
           </Link>
         </GlassCard>
       </aside>
@@ -152,12 +150,13 @@ function CartLineCard({
   onDecrease: () => void;
   onIncrease: () => void;
 }) {
+  const { locale, dictionary: t } = useLocale();
   const { product, quantity, unitPrice, summary } = line;
 
   return (
     <GlassCard className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
-        <span className="eyebrow text-fog-600">{pillarTitle(product.pillar)}</span>
+        <span className="eyebrow text-fog-600">{localizedPillarTitle(product.pillar, locale)}</span>
         <Link
           href={`/loja/${product.slug}`}
           className="mt-1.5 block font-display text-lg font-medium text-fog-50 transition-colors hover:text-lens-violet-400"
@@ -169,17 +168,17 @@ function CartLineCard({
         )}
         <p className="mt-1 font-mono text-xs text-fog-600">
           {formatPrice(unitPrice)}
-          {product.billing === "monthly" && " / mês"}
+          {product.billing === "monthly" && ` ${t.cart.perMonth}`}
         </p>
       </div>
 
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-1">
-          <QuantityButton label={`Diminuir quantidade de ${product.name}`} onClick={onDecrease}>
+          <QuantityButton label={t.cart.decreaseQty(product.name)} onClick={onDecrease}>
             <Minus size={13} />
           </QuantityButton>
           <span className="w-9 text-center font-mono text-sm text-fog-200">{quantity}</span>
-          <QuantityButton label={`Aumentar quantidade de ${product.name}`} onClick={onIncrease}>
+          <QuantityButton label={t.cart.increaseQty(product.name)} onClick={onIncrease}>
             <Plus size={13} />
           </QuantityButton>
         </div>
@@ -191,7 +190,7 @@ function CartLineCard({
         <button
           onClick={onRemove}
           className="rounded-md p-2 text-fog-600 transition-colors hover:text-danger-400"
-          aria-label={`Remover ${product.name}`}
+          aria-label={t.cart.remove(product.name)}
         >
           <Trash2 size={15} />
         </button>
@@ -214,7 +213,7 @@ function QuantityButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="rounded-md border border-white/10 p-1.5 text-fog-200 transition-colors hover:border-white/25 hover:text-fog-50"
+      className="rounded-md border border-hairline-2 p-1.5 text-fog-200 transition-colors hover:border-hairline-3 hover:text-fog-50"
     >
       {children}
     </button>
@@ -223,7 +222,7 @@ function QuantityButton({
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-baseline justify-between border-b border-white/[0.07] pb-3">
+    <div className="flex items-baseline justify-between border-b border-hairline-1 pb-3">
       <span className="text-sm text-fog-400">{label}</span>
       <span className="font-mono text-base font-semibold text-fog-50">{value}</span>
     </div>

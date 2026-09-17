@@ -7,6 +7,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Providers } from "@/components/providers";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
+import { getLocale } from "@/lib/i18n/get-locale";
 import { siteConfig, absoluteUrl } from "@/lib/site-config";
 import "./globals.css";
 
@@ -130,14 +131,29 @@ export default async function RootLayout({
   // O nonce é gerado por pedido no middleware e consumido pela CSP.
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   const session = await getSession();
+  const locale = await getLocale();
 
   return (
     <html
-      lang={siteConfig.language}
+      lang={locale === "en" ? "en" : siteConfig.language}
       className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} h-full`}
       suppressHydrationWarning
     >
       <head>
+        {/*
+          Aplica o tema guardado ANTES do primeiro paint, para quem já
+          escolheu "claro" numa visita anterior não veja um flash de escuro
+          seguido da troca. Corre antes de qualquer coisa do React — por isso
+          é um script inline, não um efeito — e nunca lança: se o
+          `localStorage` estiver bloqueado (modo privado), fica silenciosamente
+          no tema escuro por omissão.
+        */}
+        <script
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem("dl.theme")==="light"){document.documentElement.setAttribute("data-theme","light")}}catch(e){}`,
+          }}
+        />
         <script
           type="application/ld+json"
           nonce={nonce}
@@ -154,7 +170,7 @@ export default async function RootLayout({
         </noscript>
       </head>
       <body className="flex min-h-full flex-col bg-void-950 text-fog-50 antialiased">
-        <Providers>
+        <Providers initialLocale={locale}>
           <Navbar userName={session?.user?.name ?? null} />
           <main className="flex-1">{children}</main>
           <Footer />

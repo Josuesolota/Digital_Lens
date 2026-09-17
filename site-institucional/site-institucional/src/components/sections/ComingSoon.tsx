@@ -5,21 +5,13 @@ import { m } from "framer-motion";
 import { CheckCircle2, GraduationCap } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { subscribeNewsletter, type NewsletterState } from "@/app/actions";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 const initialState: NewsletterState = { status: "idle" };
 
-/** Temas confirmados para a primeira leva de cursos e infoprodutos. */
-const UPCOMING_COURSES = [
-  "Desenvolvimento Web",
-  "Inteligência Artificial aplicada",
-  "Produção de Conteúdo",
-  "Oratória & Retórica",
-  "Trading",
-  "Ebooks",
-];
-
 /** Lista de espera para os cursos e infoprodutos. */
 export function ComingSoon() {
+  const { dictionary: t } = useLocale();
   const [state, formAction, pending] = useActionState(
     subscribeNewsletter,
     initialState
@@ -33,7 +25,7 @@ export function ComingSoon() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-70px" }}
           transition={{ duration: 0.6 }}
-          className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-void-900 px-7 py-12 md:px-14 md:py-14"
+          className="relative overflow-hidden rounded-3xl border border-hairline-1 bg-void-900 px-7 py-12 md:px-14 md:py-14"
         >
           <div
             aria-hidden
@@ -48,20 +40,17 @@ export function ComingSoon() {
             <div className="flex max-w-lg flex-col gap-3">
               <span className="eyebrow flex items-center gap-2 text-lens-magenta-400">
                 <GraduationCap size={15} />
-                Em breve
+                {t.comingSoon.eyebrow}
               </span>
               <h2 className="text-balance font-display text-2xl font-semibold text-fog-50 md:text-3xl">
-                Cursos e infoprodutos Digital Lens
+                {t.comingSoon.title}
               </h2>
-              <p className="text-balance text-fog-400">
-                Formações práticas e infoprodutos em seis áreas. Deixe o
-                contacto e seja avisado em primeira mão.
-              </p>
+              <p className="text-balance text-fog-400">{t.comingSoon.description}</p>
               <ul className="flex flex-wrap gap-1.5">
-                {UPCOMING_COURSES.map((course) => (
+                {t.comingSoon.courses.map((course) => (
                   <li
                     key={course}
-                    className="rounded-full border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[11px] text-fog-400"
+                    className="rounded-full border border-hairline-1 bg-surface-1 px-2.5 py-1 text-[11px] text-fog-400"
                   >
                     {course}
                   </li>
@@ -90,7 +79,7 @@ export function ComingSoon() {
                     aria-hidden="true"
                   />
                   <label htmlFor="coming-soon-email" className="sr-only">
-                    O seu e-mail
+                    {t.comingSoon.emailLabel}
                   </label>
                   <input
                     id="coming-soon-email"
@@ -98,16 +87,16 @@ export function ComingSoon() {
                     name="email"
                     required
                     autoComplete="email"
-                    placeholder="o.seu@email.com"
+                    placeholder={t.comingSoon.emailPlaceholder}
                     aria-invalid={state.status === "error"}
-                    className="min-w-0 rounded-full border border-white/[0.12] bg-white/[0.04] px-5 py-3 text-sm text-fog-50 placeholder:text-fog-600 focus:border-lens-violet-400 focus:outline-none sm:w-64"
+                    className="min-w-0 rounded-full border border-hairline-2 bg-surface-1 px-5 py-3 text-sm text-fog-50 placeholder:text-fog-600 focus:border-lens-violet-400 focus:outline-none sm:w-64"
                   />
                   <button
                     type="submit"
                     disabled={pending}
                     className="shrink-0 rounded-full bg-[linear-gradient(100deg,var(--color-lens-blue-500),var(--color-lens-violet-500),var(--color-lens-magenta-500))] px-6 py-3 text-sm font-medium text-white transition-transform hover:-translate-y-0.5 disabled:opacity-60"
                   >
-                    {pending ? "A inscrever…" : "Avisar-me"}
+                    {pending ? t.comingSoon.submitting : t.comingSoon.submit}
                   </button>
                 </form>
               )}

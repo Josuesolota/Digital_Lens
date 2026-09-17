@@ -4,28 +4,16 @@ import { m } from "framer-motion";
 import { Quote } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 /** Placeholder — substituir por depoimentos reais assinados por clientes. */
-const TESTIMONIALS = [
-  {
-    quote:
-      "A equipa organizou em semanas o que outras agências não resolveram em meses.",
-    name: "Cliente Digital Lens",
-    role: "Retalho & Comércio",
-  },
-  {
-    quote:
-      "Finalmente uma agência que domina marketing e código ao mesmo tempo.",
-    name: "Cliente Digital Lens",
-    role: "Serviços Financeiros",
-  },
-];
-
 export function Testimonials() {
+  const { dictionary: t } = useLocale();
+
   return (
     <section className="py-20 lg:py-24">
       <Container className="grid gap-5 md:grid-cols-2">
-        {TESTIMONIALS.map((testimonial, index) => (
+        {t.testimonials.items.map((testimonial, index) => (
           <m.div
             key={index}
             initial={{ opacity: 0, y: 22 }}

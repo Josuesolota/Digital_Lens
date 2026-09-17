@@ -9,6 +9,8 @@ import {
   sendNewsletterConfirmation,
 } from "@/lib/email";
 import { rateLimit, rateLimitMessage } from "@/lib/rate-limit";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
 
 /**
  * Server Actions públicas (contacto e lista de espera).
@@ -29,33 +31,33 @@ export type ContactFormState = {
   fieldErrors?: Partial<Record<"name" | "email" | "subject" | "message", string>>;
 };
 
-const contactSchema = z.object({
-  name: z.string().trim().min(2, "Indique o seu nome.").max(120),
-  email: z.string().trim().email("Indique um e-mail válido.").max(160),
-  subject: z.string().trim().max(160).optional(),
-  message: z
-    .string()
-    .trim()
-    .min(10, "Descreva brevemente o seu projeto (mín. 10 caracteres).")
-    .max(4000, "A mensagem é demasiado longa (máx. 4000 caracteres)."),
-});
+function buildContactSchema(t: ReturnType<typeof getDictionary>) {
+  return z.object({
+    name: z.string().trim().min(2, t.actions.nameRequired).max(120),
+    email: z.string().trim().email(t.actions.emailInvalid).max(160),
+    subject: z.string().trim().max(160).optional(),
+    message: z.string().trim().min(10, t.actions.messageMin).max(4000, t.actions.messageMax),
+  });
+}
 
 export async function submitContactForm(
   _prevState: ContactFormState,
   formData: FormData
 ): Promise<ContactFormState> {
+  const t = getDictionary(await getLocale());
+
   // Honeypot: campo escondido, invisível para humanos. Se vier preenchido é bot
   // — respondemos com sucesso falso para não lhe dar sinal de deteção.
   if (String(formData.get("website") ?? "").trim()) {
-    return { status: "success", message: "Mensagem enviada." };
+    return { status: "success", message: t.actions.messageSentShort };
   }
 
   const limit = await rateLimit("contact");
   if (!limit.ok) {
-    return { status: "error", message: rateLimitMessage(limit.retryAfter) };
+    return { status: "error", message: await rateLimitMessage(limit.retryAfter) };
   }
 
-  const parsed = contactSchema.safeParse({
+  const parsed = buildContactSchema(t).safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
     subject: formData.get("subject") || undefined,
@@ -70,7 +72,7 @@ export async function submitContactForm(
     }
     return {
       status: "error",
-      message: "Reveja os campos assinalados.",
+      message: t.actions.reviewFields,
       fieldErrors,
     };
   }
@@ -100,13 +102,13 @@ export async function submitContactForm(
     // Sem persistência e sem e-mail, a mensagem perder-se-ia de facto.
     return {
       status: "error",
-      message: `Não foi possível enviar. Escreva-nos directamente para ${process.env.EMAIL_TO ?? "geral@digitallens.ao"}.`,
+      message: t.actions.sendFailed(process.env.EMAIL_TO ?? "geral@digitallens.ao"),
     };
   }
 
   return {
     status: "success",
-    message: "Mensagem enviada. A equipa Digital Lens responde em até 1 dia útil.",
+    message: t.actions.messageSentFull,
   };
 }
 
@@ -114,24 +116,28 @@ export async function submitContactForm(
 
 export type NewsletterState = { status: "idle" | "success" | "error"; message?: string };
 
-const newsletterSchema = z.object({
-  email: z.string().trim().email("Indique um e-mail válido.").max(160),
-});
+function buildNewsletterSchema(t: ReturnType<typeof getDictionary>) {
+  return z.object({
+    email: z.string().trim().email(t.actions.emailInvalid).max(160),
+  });
+}
 
 export async function subscribeNewsletter(
   _prevState: NewsletterState,
   formData: FormData
 ): Promise<NewsletterState> {
+  const t = getDictionary(await getLocale());
+
   if (String(formData.get("website") ?? "").trim()) {
-    return { status: "success", message: "Inscrição registada." };
+    return { status: "success", message: t.actions.subscriptionRegisteredShort };
   }
 
   const limit = await rateLimit("newsletter");
   if (!limit.ok) {
-    return { status: "error", message: rateLimitMessage(limit.retryAfter) };
+    return { status: "error", message: await rateLimitMessage(limit.retryAfter) };
   }
 
-  const parsed = newsletterSchema.safeParse({ email: formData.get("email") });
+  const parsed = buildNewsletterSchema(t).safeParse({ email: formData.get("email") });
   if (!parsed.success) {
     return { status: "error", message: parsed.error.issues[0].message };
   }
@@ -146,5 +152,5 @@ export async function subscribeNewsletter(
 
   await sendNewsletterConfirmation(parsed.data.email);
 
-  return { status: "success", message: "Inscrição registada. Avisamos em primeira mão." };
+  return { status: "success", message: t.actions.subscriptionRegisteredFull };
 }

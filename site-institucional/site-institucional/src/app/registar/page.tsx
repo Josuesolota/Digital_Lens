@@ -5,12 +5,17 @@ import { registerAction } from "@/app/auth-actions";
 import { AuthForm } from "@/components/forms/AuthForm";
 import { Container } from "@/components/ui/Container";
 import { AuroraBackground } from "@/components/ui/AuroraBackground";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
 
-export const metadata: Metadata = {
-  title: "Criar conta",
-  description: "Crie a sua conta Digital Lens e acompanhe os seus projetos.",
-  alternates: { canonical: "/registar" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return {
+    title: t.pages.register.title,
+    description: t.pages.register.metaDescription,
+    alternates: { canonical: "/registar" },
+  };
+}
 
 export default async function RegistarPage() {
   if (await getSession()) redirect("/conta");

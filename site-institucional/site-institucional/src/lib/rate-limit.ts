@@ -1,6 +1,8 @@
 import "server-only";
 import { headers } from "next/headers";
 import { isDatabaseConfigured, sql } from "@/lib/db";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
 
 /**
  * Rate limiting com janela fixa, persistido em Postgres (Neon).
@@ -206,18 +208,20 @@ export async function rateLimit(
 }
 
 /** Mensagem para o utilizador, com o tempo de espera em linguagem natural. */
-export function rateLimitMessage(retryAfter: number): string {
+export async function rateLimitMessage(retryAfter: number): Promise<string> {
+  const t = getDictionary(await getLocale());
+
   if (retryAfter < 60) {
-    return "Demasiados pedidos. Aguarde alguns segundos e tente novamente.";
+    return t.rateLimit.tooManySeconds;
   }
 
   const minutes = Math.ceil(retryAfter / 60);
   if (minutes < 60) {
-    return `Demasiados pedidos. Tente novamente dentro de ${minutes} ${minutes === 1 ? "minuto" : "minutos"}.`;
+    return t.rateLimit.tooManyMinutes(minutes);
   }
 
   // Arredondamos aos minutos antes de converter: 3586s são 60 minutos, que se
   // lê melhor como "1 hora" do que como "60 minutos".
   const hours = Math.ceil(minutes / 60);
-  return `Demasiados pedidos. Tente novamente dentro de ${hours} ${hours === 1 ? "hora" : "horas"}.`;
+  return t.rateLimit.tooManyHours(hours);
 }

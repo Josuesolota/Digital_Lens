@@ -6,24 +6,29 @@
   ─────────────────────────────────────────────────────────────────────────────
   A paleta é derivada directamente do símbolo da marca (a lente): o vidro passa
   de azul (topo) a violeta e magenta (base), montado num aro cromado sobre um
-  fundo quase preto. Traduzimos isso em três famílias:
+  fundo quase preto. Traduzimos isso em cinco famílias:
 
-    void-*    fundo (o preto-azulado onde a lente assenta)
-    lens-*    o gradiente de vidro — azul → violeta → magenta (acções, acentos)
-    chrome-*  o aro metálico — bordas, separadores, superfícies elevadas
-    fog-*     tipografia sobre fundo escuro
+    void-*      fundo — a superfície da página (tema escuro por omissão)
+    lens-*      o gradiente de vidro — azul → violeta → magenta (acções, acentos)
+    chrome-*    o aro metálico — bordas, separadores, superfícies elevadas
+    fog-*       tipografia sobre o fundo
+    hairline-*  bordas neutras / surface-* preenchimentos subtis — a escala
+                usada por "vidro" e divisórias em toda a interface
 
-  O site é dark-first por decisão de marca: a lente só "brilha" sobre o void.
+  A marca nasceu dark-first (a lente só "brilha" sobre o void), mas `void-*` e
+  `fog-*` são tokens SEMÂNTICOS (fundo/texto), não literais — por isso o tema
+  claro só precisa de os redefinir sob `[data-theme="light"]`; nenhum
+  componente refere uma cor a direito, só o papel que ela desempenha.
+  `lens-*` e `chrome-*` são acentos saturados/metálicos: mantêm-se iguais nos
+  dois temas, porque já têm contraste suficiente contra um fundo muito escuro
+  ou muito claro — é para isso que servem acentos, ao contrário de neutros.
 */
 @theme {
-  /* Fundo */
+  /* Fundo — tema escuro (omissão) */
   --color-void-950: #06080f;
   --color-void-900: #0a0e18;
-  --color-void-850: #0e1422;
-  --color-void-800: #131b2c;
-  --color-void-700: #1b2438;
 
-  /* Vidro da lente */
+  /* Vidro da lente — acento, igual nos dois temas */
   --color-lens-blue-600: #1d4ed8;
   --color-lens-blue-500: #2563eb;
   --color-lens-blue-400: #4d8dff;
@@ -35,19 +40,29 @@
   --color-lens-magenta-400: #ef4fc4;
   --color-lens-cyan-400: #22d3ee;
 
-  /* Aro cromado */
+  /* Aro cromado — acento metálico, igual nos dois temas */
   --color-chrome-100: #eef2f8;
   --color-chrome-300: #b9c3d4;
   --color-chrome-500: #78859c;
   --color-chrome-700: #3d4658;
 
-  /* Tipografia sobre o void */
+  /* Tipografia — tema escuro (omissão) */
   --color-fog-50: #f4f7ff;
   --color-fog-200: #d3dcec;
   --color-fog-400: #9db0cf;
   --color-fog-600: #6d7f9e;
 
-  /* Estado */
+  /* Bordas e preenchimentos neutros — tema escuro (omissão).
+     Consolidam o que antes eram valores `white/[opacity]` ad-hoc espalhados
+     pelos componentes numa escala com 3 degraus, para poderem ser redefinidos
+     de uma só vez no tema claro. */
+  --color-hairline-1: rgb(255 255 255 / 0.07); /* divisórias, bordas de secção */
+  --color-hairline-2: rgb(255 255 255 / 0.12); /* borda de elemento interactivo */
+  --color-hairline-3: rgb(255 255 255 / 0.22); /* borda em destaque/hover forte */
+  --color-surface-1: rgb(255 255 255 / 0.03); /* preenchimento quase imperceptível */
+  --color-surface-2: rgb(255 255 255 / 0.06); /* preenchimento visível em hover */
+
+  /* Estado — igual nos dois temas */
   --color-success-400: #34d399;
   --color-danger-400: #fb7185;
 
@@ -92,6 +107,42 @@
   color-scheme: dark;
   --background: var(--color-void-950);
   --foreground: var(--color-fog-50);
+
+  /* Superfície "glass" — ver o utilitário `.glass` mais abaixo */
+  --glass-from: rgb(255 255 255 / 0.06);
+  --glass-mid: rgb(255 255 255 / 0.02);
+  --glass-to: rgb(255 255 255 / 0.04);
+}
+
+/*
+  Tema claro. Só entra em vigor quando `<html data-theme="light">` — aplicado
+  pelo ThemeProvider a partir da preferência guardada (por omissão, escuro,
+  por decisão de marca: sem escolha explícita do visitante, mantém-se
+  dark-first). `void-*`/`fog-*`/`hairline-*`/`surface-*` são os únicos tokens
+  redefinidos: são papéis semânticos (fundo, texto, bordas neutras), nunca
+  cores literais — por isso um só bloco de overrides chega a toda a interface,
+  sem tocar em nenhum componente.
+*/
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --color-void-950: #f7f8fb; /* fundo da página */
+  --color-void-900: #eef1f7; /* superfícies elevadas — rodapé, faixas de destaque */
+
+  --color-fog-50: #10131c; /* texto principal */
+  --color-fog-200: #333c4e; /* texto secundário com ênfase */
+  --color-fog-400: #57647c; /* texto secundário */
+  --color-fog-600: #7b879d; /* texto terciário/desvanecido */
+
+  --color-hairline-1: rgb(15 23 42 / 0.08);
+  --color-hairline-2: rgb(15 23 42 / 0.14);
+  --color-hairline-3: rgb(15 23 42 / 0.26);
+  --color-surface-1: rgb(15 23 42 / 0.03);
+  --color-surface-2: rgb(15 23 42 / 0.05);
+
+  --glass-from: rgb(15 23 42 / 0.05);
+  --glass-mid: rgb(15 23 42 / 0.015);
+  --glass-to: rgb(15 23 42 / 0.03);
 }
 
 html {
@@ -105,6 +156,9 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  /* A troca de tema muda muitas cores de uma vez — sem isto, cada uma
+     transitava ao seu próprio ritmo, dando um efeito de "remendo". */
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Foco visível — obrigatório para navegação por teclado (WCAG 2.4.7) */
@@ -143,15 +197,13 @@ html { scrollbar-color: var(--color-chrome-700) transparent; }
   color: transparent;
 }
 
-/* Painel de vidro — a superfície-base de todos os cards */
+/* Painel de vidro — a superfície-base de todos os cards. As cores vêm de
+   `--glass-*` (redefinidas no tema claro em vez de brancas fixas), por isso
+   o "vidro" continua a parecer vidro em vez de ficar leitoso sobre um fundo
+   claro. */
 @utility glass {
-  background: linear-gradient(
-    160deg,
-    rgb(255 255 255 / 0.06) 0%,
-    rgb(255 255 255 / 0.02) 45%,
-    rgb(255 255 255 / 0.04) 100%
-  );
-  border: 1px solid rgb(255 255 255 / 0.08);
+  background: linear-gradient(160deg, var(--glass-from) 0%, var(--glass-mid) 45%, var(--glass-to) 100%);
+  border: 1px solid var(--color-hairline-1);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
@@ -183,8 +235,8 @@ html { scrollbar-color: var(--color-chrome-700) transparent; }
 /* Grelha técnica de fundo — reforça a leitura "digital/futurista" */
 @utility grid-void {
   background-image:
-    linear-gradient(to right, rgb(157 176 207 / 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(157 176 207 / 0.06) 1px, transparent 1px);
+    linear-gradient(to right, var(--color-hairline-1) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-hairline-1) 1px, transparent 1px);
   background-size: 64px 64px;
 }
 

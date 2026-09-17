@@ -4,6 +4,7 @@ import { m } from "framer-motion";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { LensMark } from "@/components/ui/LensMark";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 /**
  * Vitrine de trabalhos.
@@ -12,21 +13,23 @@ import { LensMark } from "@/components/ui/LensMark";
  * `{ name, category, result, href }` e trocar o placeholder da lente por
  * `<OptimizedImage>` com a captura do projeto.
  */
-const PROJECTS = [
-  { name: "Case em preparação", category: "Desenvolvimento Web", result: "Em breve" },
-  { name: "Case em preparação", category: "Inteligência Artificial", result: "Em breve" },
-  { name: "Case em preparação", category: "Marketing Digital", result: "Em breve" },
-  { name: "Case em preparação", category: "Locução & Narração", result: "Em breve" },
-];
-
 export function Portfolio() {
+  const { dictionary: t } = useLocale();
+
+  const PROJECTS = [
+    { name: t.portfolio.caseInPrep, category: t.portfolio.categories.web, result: t.portfolio.comingSoon },
+    { name: t.portfolio.caseInPrep, category: t.portfolio.categories.ai, result: t.portfolio.comingSoon },
+    { name: t.portfolio.caseInPrep, category: t.portfolio.categories.marketing, result: t.portfolio.comingSoon },
+    { name: t.portfolio.caseInPrep, category: t.portfolio.categories.voice, result: t.portfolio.comingSoon },
+  ];
+
   return (
     <section id="portfolio" className="relative py-24 lg:py-32">
       <Container className="flex flex-col gap-14">
         <SectionHeading
-          eyebrow="Trabalhos"
-          title="Portfólio em construção."
-          description="Os primeiros cases da Digital Lens aparecem aqui — com métricas, não apenas capturas de ecrã."
+          eyebrow={t.portfolio.eyebrow}
+          title={t.portfolio.title}
+          description={t.portfolio.description}
         />
 
         <div className="grid gap-5 sm:grid-cols-2">
@@ -37,7 +40,7 @@ export function Portfolio() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-70px" }}
               transition={{ duration: 0.5, delay: index * 0.07 }}
-              className="group relative flex aspect-[4/3] flex-col justify-end overflow-hidden rounded-2xl border border-white/[0.08] bg-void-900 p-6"
+              className="group relative flex aspect-[4/3] flex-col justify-end overflow-hidden rounded-2xl border border-hairline-1 bg-void-900 p-6"
             >
               {/* Placeholder: a lente da marca, esbatida, até haver imagem real */}
               <div

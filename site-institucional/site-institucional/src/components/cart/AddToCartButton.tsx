@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Check, Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useCart } from "@/components/cart/cart-context";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 import type { ConfigSelection } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
@@ -27,9 +28,10 @@ export function AddToCartButton({
   disabled = false,
   className,
   size = "md",
-  label = "Adicionar ao carrinho",
+  label,
 }: AddToCartButtonProps) {
   const { add } = useCart();
+  const { dictionary: t } = useLocale();
   const [added, setAdded] = useState(false);
   const timer = useRef<number | undefined>(undefined);
 
@@ -53,7 +55,7 @@ export function AddToCartButton({
       aria-live="polite"
     >
       {added ? <Check size={16} /> : <Plus size={16} />}
-      {added ? "Adicionado" : label}
+      {added ? t.addToCart.added : (label ?? t.addToCart.add)}
     </Button>
   );
 }

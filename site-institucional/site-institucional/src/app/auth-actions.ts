@@ -8,6 +8,8 @@ import { isDatabaseConfigured } from "@/lib/db";
 import { createUser, findUserByEmail } from "@/lib/db/queries";
 import { sendWelcomeEmail } from "@/lib/email";
 import { rateLimit, rateLimitMessage } from "@/lib/rate-limit";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
 
 /**
  * Server Actions de autenticação.
@@ -27,26 +29,19 @@ export type AuthFormState = {
   fieldErrors?: Partial<Record<"name" | "email" | "password" | "confirm", string>>;
 };
 
-const DB_OFF: AuthFormState = {
-  status: "error",
-  message:
-    "As contas de cliente ainda não estão activas neste ambiente. Contacte-nos e tratamos do seu pedido directamente.",
-};
-
-const registerSchema = z
-  .object({
-    name: z.string().trim().min(2, "Indique o seu nome.").max(120),
-    email: z.string().trim().email("Indique um e-mail válido.").max(160),
-    password: z
-      .string()
-      .min(8, "A palavra-passe precisa de pelo menos 8 caracteres.")
-      .max(200),
-    confirm: z.string(),
-  })
-  .refine((data) => data.password === data.confirm, {
-    path: ["confirm"],
-    message: "As palavras-passe não coincidem.",
-  });
+function buildRegisterSchema(t: ReturnType<typeof getDictionary>) {
+  return z
+    .object({
+      name: z.string().trim().min(2, t.authActions.nameRequired).max(120),
+      email: z.string().trim().email(t.authActions.emailInvalid).max(160),
+      password: z.string().min(8, t.authActions.passwordMin).max(200),
+      confirm: z.string(),
+    })
+    .refine((data) => data.password === data.confirm, {
+      path: ["confirm"],
+      message: t.authActions.passwordMismatch,
+    });
+}
 
 function toFieldErrors(error: z.ZodError): AuthFormState["fieldErrors"] {
   const fieldErrors: AuthFormState["fieldErrors"] = {};
@@ -61,9 +56,10 @@ export async function registerAction(
   _prevState: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
-  if (!isDatabaseConfigured()) return DB_OFF;
+  const t = getDictionary(await getLocale());
+  if (!isDatabaseConfigured()) return { status: "error", message: t.authActions.dbOff };
 
-  const parsed = registerSchema.safeParse({
+  const parsed = buildRegisterSchema(t).safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
@@ -73,7 +69,7 @@ export async function registerAction(
   if (!parsed.success) {
     return {
       status: "error",
-      message: "Reveja os campos assinalados.",
+      message: t.authActions.reviewFields,
       fieldErrors: toFieldErrors(parsed.error),
     };
   }
@@ -82,15 +78,15 @@ export async function registerAction(
 
   const limit = await rateLimit("register");
   if (!limit.ok) {
-    return { status: "error", message: rateLimitMessage(limit.retryAfter) };
+    return { status: "error", message: await rateLimitMessage(limit.retryAfter) };
   }
 
   try {
     if (await findUserByEmail(email)) {
       return {
         status: "error",
-        message: "Já existe uma conta com este e-mail.",
-        fieldErrors: { email: "E-mail já registado." },
+        message: t.authActions.accountExists,
+        fieldErrors: { email: t.authActions.emailRegistered },
       };
     }
 
@@ -100,7 +96,7 @@ export async function registerAction(
     await createUser({ name, email, passwordHash });
   } catch (error) {
     console.error("[registo] falha ao criar conta:", error);
-    return { status: "error", message: "Não foi possível criar a conta. Tente novamente." };
+    return { status: "error", message: t.authActions.createAccountFailed };
   }
 
   // Falha de e-mail não invalida um registo bem-sucedido.
@@ -111,18 +107,21 @@ export async function registerAction(
   return { status: "idle" };
 }
 
-const loginSchema = z.object({
-  email: z.string().trim().email("Indique um e-mail válido."),
-  password: z.string().min(1, "Indique a palavra-passe."),
-});
+function buildLoginSchema(t: ReturnType<typeof getDictionary>) {
+  return z.object({
+    email: z.string().trim().email(t.authActions.emailInvalid),
+    password: z.string().min(1, t.authActions.passwordRequired),
+  });
+}
 
 export async function loginAction(
   _prevState: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
-  if (!isDatabaseConfigured()) return DB_OFF;
+  const t = getDictionary(await getLocale());
+  if (!isDatabaseConfigured()) return { status: "error", message: t.authActions.dbOff };
 
-  const parsed = loginSchema.safeParse({
+  const parsed = buildLoginSchema(t).safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
   });
@@ -130,7 +129,7 @@ export async function loginAction(
   if (!parsed.success) {
     return {
       status: "error",
-      message: "Reveja os campos assinalados.",
+      message: t.authActions.reviewFields,
       fieldErrors: toFieldErrors(parsed.error),
     };
   }
@@ -140,7 +139,7 @@ export async function loginAction(
   for (const scope of [undefined, parsed.data.email]) {
     const limit = await rateLimit("login", scope);
     if (!limit.ok) {
-      return { status: "error", message: rateLimitMessage(limit.retryAfter) };
+      return { status: "error", message: await rateLimitMessage(limit.retryAfter) };
     }
   }
 
@@ -151,7 +150,7 @@ export async function loginAction(
   } catch (error) {
     if (error instanceof AuthError) {
       // Mensagem deliberadamente genérica: não revela se o e-mail existe.
-      return { status: "error", message: "E-mail ou palavra-passe incorrectos." };
+      return { status: "error", message: t.authActions.loginFailed };
     }
     throw error; // NEXT_REDIRECT e outros erros continuam a propagar
   }

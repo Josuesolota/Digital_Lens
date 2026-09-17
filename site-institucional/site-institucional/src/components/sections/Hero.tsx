@@ -6,7 +6,9 @@ import { LensMark } from "@/components/ui/LensMark";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { AuroraBackground } from "@/components/ui/AuroraBackground";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 import { SERVICE_PILLARS } from "@/lib/services";
+import { localizePillars } from "@/lib/i18n/localize";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -19,13 +21,16 @@ const fadeUp: Variants = {
   }),
 };
 
-const STATS = [
-  { value: "4", label: "áreas de especialidade" },
-  { value: "22", label: "serviços no catálogo" },
-  { value: "24h", label: "tempo médio de resposta" },
-];
-
 export function Hero() {
+  const { locale, dictionary: t } = useLocale();
+  const pillars = localizePillars(SERVICE_PILLARS, locale);
+
+  const STATS = [
+    { value: "4", label: t.hero.statAreas },
+    { value: "22", label: t.hero.statServices },
+    { value: "24h", label: t.hero.statResponse },
+  ];
+
   return (
     <section className="relative overflow-hidden pb-20 pt-14 sm:pt-20 lg:pb-28">
       <AuroraBackground />
@@ -42,7 +47,7 @@ export function Hero() {
               className="glass eyebrow flex items-center gap-2 rounded-full px-3.5 py-2 text-fog-200"
             >
               <Sparkles size={13} className="text-lens-magenta-400" />
-              Agência Digital
+              {t.hero.badge}
             </m.span>
 
             <m.h1
@@ -52,8 +57,8 @@ export function Hero() {
               variants={fadeUp}
               className="max-w-3xl text-balance font-display text-4xl font-semibold leading-[1.06] text-fog-50 sm:text-5xl lg:text-6xl"
             >
-              Foco onde a sua marca{" "}
-              <span className="text-gradient">precisa de estar.</span>
+              {t.hero.titleStart}{" "}
+              <span className="text-gradient">{t.hero.titleHighlight}</span>
             </m.h1>
 
             <m.p
@@ -63,8 +68,7 @@ export function Hero() {
               variants={fadeUp}
               className="max-w-lg text-balance text-lg leading-relaxed text-fog-400"
             >
-              Desenvolvimento web, inteligência artificial, marketing digital e
-              locução profissional — da estratégia à execução, sob uma só lente.
+              {t.hero.description}
             </m.p>
 
             <m.div
@@ -75,11 +79,11 @@ export function Hero() {
               className="flex flex-wrap gap-3 pt-1"
             >
               <Button href="/contacto" size="lg">
-                Iniciar projeto
+                {t.hero.startProject}
                 <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
               </Button>
               <Button href="/loja" variant="secondary" size="lg">
-                Ver a loja
+                {t.hero.viewStore}
               </Button>
             </m.div>
 
@@ -88,7 +92,7 @@ export function Hero() {
               initial="hidden"
               animate="visible"
               variants={fadeUp}
-              className="mt-6 flex flex-wrap gap-x-10 gap-y-5 border-t border-white/[0.08] pt-7"
+              className="mt-6 flex flex-wrap gap-x-10 gap-y-5 border-t border-hairline-1 pt-7"
             >
               {STATS.map((stat) => (
                 <div key={stat.label} className="flex flex-col gap-1">
@@ -117,11 +121,11 @@ export function Hero() {
               {/* Anéis orbitais — reforçam a leitura "óptica/técnica" */}
               <div
                 aria-hidden
-                className="absolute inset-[-14%] rounded-full border border-white/[0.07]"
+                className="absolute inset-[-14%] rounded-full border border-hairline-1"
               />
               <div
                 aria-hidden
-                className="absolute inset-[-30%] rounded-full border border-dashed border-white/[0.05]"
+                className="absolute inset-[-30%] rounded-full border border-dashed border-hairline-1"
               />
             </div>
           </m.div>
@@ -129,7 +133,7 @@ export function Hero() {
       </Container>
 
       {/* ── Faixa de especialidades em movimento contínuo ── */}
-      <div className="relative mt-16 overflow-hidden border-y border-white/[0.07] py-4">
+      <div className="relative mt-16 overflow-hidden border-y border-hairline-1 py-4">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-[linear-gradient(90deg,var(--color-void-950),transparent)]"
@@ -146,7 +150,7 @@ export function Hero() {
               className="flex items-center"
               aria-hidden={copy === 1}
             >
-              {SERVICE_PILLARS.flatMap((pillar) =>
+              {pillars.flatMap((pillar) =>
                 pillar.items.map((item) => (
                   <li
                     key={`${pillar.slug}-${item.title}`}

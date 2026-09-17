@@ -3,31 +3,12 @@
 import { m } from "framer-motion";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-
-const STEPS = [
-  {
-    title: "Diagnóstico",
-    description:
-      "Uma sessão para perceber o negócio, o público e o que está mesmo a travar o crescimento. Sem proposta antes de haver diagnóstico.",
-  },
-  {
-    title: "Desenho",
-    description:
-      "Estratégia, arquitetura e protótipo com âmbito e prazos fechados por escrito. Aprova antes de começarmos a construir.",
-  },
-  {
-    title: "Execução",
-    description:
-      "Entregas semanais visíveis num ambiente de pré-produção — acompanha o progresso sem esperar pelo fim.",
-  },
-  {
-    title: "Medição",
-    description:
-      "Analítica configurada desde o primeiro dia e relatório com o que funcionou, o que não funcionou e o passo seguinte.",
-  },
-];
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 export function About() {
+  const { dictionary: t } = useLocale();
+  const STEPS = t.about.steps;
+
   return (
     <section id="metodo" className="relative py-24 lg:py-32">
       <div
@@ -37,14 +18,14 @@ export function About() {
 
       <Container className="relative grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
         <SectionHeading
-          eyebrow="Como trabalhamos"
+          eyebrow={t.about.eyebrow}
           title={
             <>
-              Clareza antes de{" "}
-              <span className="text-gradient">execução.</span>
+              {t.about.titleStart}{" "}
+              <span className="text-gradient">{t.about.titleHighlight}</span>
             </>
           }
-          description="Um método em quatro tempos que elimina surpresas — para si e para nós."
+          description={t.about.description}
         />
 
         <ol className="flex flex-col">
@@ -55,7 +36,7 @@ export function About() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-70px" }}
               transition={{ duration: 0.5, delay: index * 0.08 }}
-              className="group flex gap-6 border-b border-white/[0.07] py-7 last:border-0 last:pb-0 first:pt-0"
+              className="group flex gap-6 border-b border-hairline-1 py-7 last:border-0 last:pb-0 first:pt-0"
             >
               <span className="shrink-0 font-mono text-sm text-lens-violet-400/70 transition-colors group-hover:text-lens-magenta-400">
                 {String(index + 1).padStart(2, "0")}

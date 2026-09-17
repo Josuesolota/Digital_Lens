@@ -2,18 +2,18 @@
 
 import { ShoppingBag } from "lucide-react";
 import { useCart } from "@/components/cart/cart-context";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 export function CartButton({ className }: { className?: string }) {
   const { count, open, ready } = useCart();
+  const { dictionary: t } = useLocale();
 
   return (
     <button
       type="button"
       onClick={open}
-      className={`relative rounded-full p-2.5 text-fog-200 transition-colors hover:bg-white/5 hover:text-fog-50 ${className ?? ""}`}
-      aria-label={
-        count > 0 ? `Carrinho com ${count} ${count === 1 ? "item" : "itens"}` : "Carrinho vazio"
-      }
+      className={`relative rounded-full p-2.5 text-fog-200 transition-colors hover:bg-surface-2 hover:text-fog-50 ${className ?? ""}`}
+      aria-label={count > 0 ? t.cart.cartWithCount(count) : t.cart.cartEmptyAria}
     >
       <ShoppingBag size={19} strokeWidth={1.75} />
       {ready && count > 0 && (

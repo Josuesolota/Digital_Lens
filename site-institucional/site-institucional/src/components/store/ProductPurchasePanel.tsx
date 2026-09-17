@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { CalendarClock, Check, Minus, Plus } from "lucide-react";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 import {
   defaultSelection,
   formatKwanzaEquivalent,
@@ -29,6 +30,7 @@ const MAX_QUANTITY = 20;
  * `null` — produtos sob orçamento usam outro ramo na página do produto.
  */
 export function ProductPurchasePanel({ product }: { product: Product }) {
+  const { dictionary: t } = useLocale();
   const configurator = product.configurator;
   const priceRange = product.priceRange;
 
@@ -47,7 +49,7 @@ export function ProductPurchasePanel({ product }: { product: Product }) {
   const unitPrice = resolution.ok ? resolution.price : priceRange.min;
   const totalPrice = unitPrice * quantity;
   const quantityLabel =
-    configurator.kind === "tier" ? (configurator.quantityLabel ?? "unidades") : "unidades";
+    configurator.kind === "tier" ? (configurator.quantityLabel ?? t.purchasePanel.units) : t.purchasePanel.units;
 
   function selectSingleOption(groupOptionIds: readonly string[], optionId: string) {
     setSelection((current) => {
@@ -77,27 +79,27 @@ export function ProductPurchasePanel({ product }: { product: Product }) {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
-        <span className="eyebrow text-fog-600">Investimento</span>
+        <span className="eyebrow text-fog-600">{t.purchasePanel.investment}</span>
         <span className="flex items-baseline gap-1.5">
           <span className="font-display text-4xl font-semibold text-gradient">
             {formatPrice(totalPrice)}
           </span>
           {product.billing === "monthly" && (
-            <span className="text-sm text-fog-600">/ mês</span>
+            <span className="text-sm text-fog-600">{t.purchasePanel.perMonth}</span>
           )}
         </span>
         <span className="font-mono text-xs text-fog-600">
           / {formatKwanzaEquivalent(totalPrice)}
-          {product.billing === "monthly" && " / mês"}
+          {product.billing === "monthly" && ` ${t.purchasePanel.perMonth}`}
         </span>
         <span className="text-xs text-fog-600">
-          {priceRange.min !== priceRange.max && `Faixa: ${formatPriceRange(priceRange)}. `}
-          IVA à taxa legal em vigor, calculado no checkout.
+          {priceRange.min !== priceRange.max && t.purchasePanel.range(formatPriceRange(priceRange))}
+          {t.purchasePanel.vatNote}
         </span>
       </div>
 
       {configurator.kind === "features" ? (
-        <div className="flex flex-col gap-5 border-y border-white/[0.08] py-5">
+        <div className="flex flex-col gap-5 border-y border-hairline-1 py-5">
           {configurator.groups.map((group) => (
             <div key={group.id} className="flex flex-col gap-2.5">
               <span className="eyebrow text-fog-600">{group.title}</span>
@@ -122,7 +124,7 @@ export function ProductPurchasePanel({ product }: { product: Product }) {
                         "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors",
                         selected
                           ? "border-lens-violet-400/60 bg-lens-violet-500/15 text-fog-50"
-                          : "border-white/[0.10] bg-white/[0.03] text-fog-400 hover:border-white/20 hover:text-fog-200"
+                          : "border-hairline-2 bg-surface-1 text-fog-400 hover:border-hairline-3 hover:text-fog-200"
                       )}
                     >
                       {selected && <Check size={12} className="text-lens-cyan-400" />}
@@ -140,8 +142,8 @@ export function ProductPurchasePanel({ product }: { product: Product }) {
           ))}
         </div>
       ) : configurator.levels.length > 1 ? (
-        <div className="flex flex-col gap-2 border-y border-white/[0.08] py-5">
-          <span className="eyebrow text-fog-600">Nível</span>
+        <div className="flex flex-col gap-2 border-y border-hairline-1 py-5">
+          <span className="eyebrow text-fog-600">{t.purchasePanel.level}</span>
           {configurator.levels.map((level, index) => {
             const selected = selection?.kind === "tier" && selection.levelIndex === index;
             return (
@@ -154,7 +156,7 @@ export function ProductPurchasePanel({ product }: { product: Product }) {
                   "flex items-start justify-between gap-4 rounded-xl border px-4 py-3 text-left transition-colors",
                   selected
                     ? "border-lens-violet-400/60 bg-lens-violet-500/10"
-                    : "border-white/[0.08] bg-white/[0.02] hover:border-white/20"
+                    : "border-hairline-1 bg-surface-1 hover:border-hairline-3"
                 )}
               >
                 <span className="flex min-w-0 flex-col gap-0.5">
@@ -174,13 +176,13 @@ export function ProductPurchasePanel({ product }: { product: Product }) {
       ) : null}
 
       <div className="flex items-center justify-between">
-        <span className="text-sm text-fog-400">Quantidade ({quantityLabel})</span>
+        <span className="text-sm text-fog-400">{t.purchasePanel.quantity(quantityLabel)}</span>
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-            aria-label="Diminuir quantidade"
-            className="rounded-md border border-white/10 p-1.5 text-fog-200 transition-colors hover:border-white/25 hover:text-fog-50"
+            aria-label={t.purchasePanel.decreaseQty}
+            className="rounded-md border border-hairline-2 p-1.5 text-fog-200 transition-colors hover:border-hairline-3 hover:text-fog-50"
           >
             <Minus size={13} />
           </button>
@@ -188,8 +190,8 @@ export function ProductPurchasePanel({ product }: { product: Product }) {
           <button
             type="button"
             onClick={() => setQuantity((q) => Math.min(MAX_QUANTITY, q + 1))}
-            aria-label="Aumentar quantidade"
-            className="rounded-md border border-white/10 p-1.5 text-fog-200 transition-colors hover:border-white/25 hover:text-fog-50"
+            aria-label={t.purchasePanel.increaseQty}
+            className="rounded-md border border-hairline-2 p-1.5 text-fog-200 transition-colors hover:border-hairline-3 hover:text-fog-50"
           >
             <Plus size={13} />
           </button>
@@ -205,7 +207,7 @@ export function ProductPurchasePanel({ product }: { product: Product }) {
 
       <p className="flex items-center gap-2 text-xs text-fog-400">
         <CalendarClock size={14} className="text-lens-violet-400" />
-        Entrega típica em {product.deliveryDays} dias úteis
+        {t.purchasePanel.deliveryTime(product.deliveryDays)}
       </p>
     </div>
   );

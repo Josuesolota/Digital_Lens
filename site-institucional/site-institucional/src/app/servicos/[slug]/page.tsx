@@ -10,6 +10,9 @@ import { ProductCard } from "@/components/store/ProductCard";
 import { getPillar, SERVICE_SLUGS } from "@/lib/services";
 import { getProductsByPillar } from "@/lib/products";
 import { absoluteUrl, siteConfig } from "@/lib/site-config";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
+import { localizePillar, localizeProducts } from "@/lib/i18n/localize";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -20,8 +23,9 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const pillar = getPillar(slug);
-  if (!pillar) return {};
+  const rawPillar = getPillar(slug);
+  if (!rawPillar) return {};
+  const pillar = localizePillar(rawPillar, await getLocale());
 
   return {
     title: pillar.title,
@@ -37,10 +41,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ServicoPage({ params }: PageProps) {
   const { slug } = await params;
-  const pillar = getPillar(slug);
-  if (!pillar) notFound();
+  const rawPillar = getPillar(slug);
+  if (!rawPillar) notFound();
 
-  const products = getProductsByPillar(pillar.slug);
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const pillar = localizePillar(rawPillar, locale);
+  const products = localizeProducts(getProductsByPillar(pillar.slug), locale);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -74,7 +81,7 @@ export default async function ServicoPage({ params }: PageProps) {
             className="group flex w-fit items-center gap-2 text-sm text-fog-400 transition-colors hover:text-fog-50"
           >
             <ArrowLeft size={15} className="transition-transform group-hover:-translate-x-0.5" />
-            Todos os serviços
+            {t.pages.serviceDetail.allServices}
           </Link>
 
           <div className="flex items-center gap-4">
@@ -98,11 +105,11 @@ export default async function ServicoPage({ params }: PageProps) {
 
           <div className="flex flex-wrap gap-3 pt-2">
             <Button href={`/contacto?servico=${pillar.slug}`} size="lg">
-              Pedir proposta
+              {t.pages.serviceDetail.requestProposal}
             </Button>
             {products.length > 0 && (
               <Button href="/loja" variant="secondary" size="lg">
-                Ver pacotes
+                {t.pages.serviceDetail.viewPackages}
               </Button>
             )}
           </div>
@@ -112,7 +119,7 @@ export default async function ServicoPage({ params }: PageProps) {
       <section className="py-14">
         <Container className="grid gap-10 lg:grid-cols-[1.4fr_0.85fr] lg:gap-16">
           <div>
-            <h2 className="eyebrow mb-6 text-lens-violet-400">O que inclui</h2>
+            <h2 className="eyebrow mb-6 text-lens-violet-400">{t.pages.serviceDetail.whatIncludes}</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               {pillar.items.map((item) => (
                 <GlassCard key={item.title} className="flex flex-col gap-2 p-5">
@@ -126,7 +133,7 @@ export default async function ServicoPage({ params }: PageProps) {
           </div>
 
           <aside>
-            <h2 className="eyebrow mb-6 text-lens-violet-400">O que recebe</h2>
+            <h2 className="eyebrow mb-6 text-lens-violet-400">{t.pages.serviceDetail.whatYouGet}</h2>
             <GlassCard className="flex flex-col gap-3.5 p-6">
               {pillar.deliverables.map((deliverable) => (
                 <p key={deliverable} className="flex items-start gap-2.5 text-sm text-fog-200">
@@ -143,7 +150,7 @@ export default async function ServicoPage({ params }: PageProps) {
         <section className="py-14 pb-24">
           <Container className="flex flex-col gap-8">
             <h2 className="font-display text-2xl font-semibold text-fog-50">
-              Pacotes de {pillar.title.toLowerCase()}
+              {t.pages.serviceDetail.packagesOf(pillar.title.toLowerCase())}
             </h2>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {products.map((product, index) => (

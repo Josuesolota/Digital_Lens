@@ -7,6 +7,8 @@ import { isDatabaseConfigured } from "@/lib/db";
 import { createPendingOrder, type OrderItem } from "@/lib/db/queries";
 import { absoluteUrl, siteConfig } from "@/lib/site-config";
 import { rateLimit, rateLimitMessage } from "@/lib/rate-limit";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
 
 export const runtime = "nodejs";
 
@@ -48,25 +50,28 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+
   // Criar sessões no Stripe custa dinheiro e quota — limitamos antes de tudo.
   const limit = await rateLimit("checkout");
   if (!limit.ok) {
     return NextResponse.json(
-      { error: rateLimitMessage(limit.retryAfter) },
+      { error: await rateLimitMessage(limit.retryAfter) },
       { status: 429, headers: { "Retry-After": String(limit.retryAfter) } }
     );
   }
 
   if (!isStripeConfigured()) {
     return NextResponse.json(
-      { error: "Pagamentos ainda não estão configurados. Contacte-nos para concluir o pedido." },
+      { error: t.checkoutApi.paymentsNotConfigured },
       { status: 503 }
     );
   }
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
-    return NextResponse.json({ error: "Carrinho inválido." }, { status: 400 });
+    return NextResponse.json({ error: t.checkoutApi.invalidCart }, { status: 400 });
   }
 
   const resolved = parsed.data.items.flatMap((line) => {
@@ -88,7 +93,7 @@ export async function POST(request: Request) {
 
   if (resolved.length === 0) {
     return NextResponse.json(
-      { error: "Nenhum dos itens do carrinho está disponível para compra online." },
+      { error: t.checkoutApi.noItemsAvailable },
       { status: 400 }
     );
   }
@@ -98,10 +103,7 @@ export async function POST(request: Request) {
   const hasOneTime = resolved.some((line) => line.product.billing === "one-time");
   if (hasSubscription && hasOneTime) {
     return NextResponse.json(
-      {
-        error:
-          "Serviços mensais e pagamentos únicos têm de ser finalizados em compras separadas.",
-      },
+      { error: t.checkoutApi.mixedBillingError },
       { status: 400 }
     );
   }
@@ -111,7 +113,7 @@ export async function POST(request: Request) {
   try {
     const checkout = await stripe().checkout.sessions.create({
       mode: hasSubscription ? "subscription" : "payment",
-      locale: "pt",
+      locale,
       // Pré-preenche o e-mail de quem já tem sessão iniciada.
       customer_email: session?.user?.email ?? undefined,
       billing_address_collection: "required",
@@ -171,7 +173,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("[checkout] falha ao criar sessão Stripe:", error);
     return NextResponse.json(
-      { error: "Não foi possível iniciar o pagamento. Tente novamente." },
+      { error: t.checkoutApi.paymentInitFailed },
       { status: 500 }
     );
   }

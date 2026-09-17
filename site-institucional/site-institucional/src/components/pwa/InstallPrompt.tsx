@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, m } from "framer-motion";
 import { Download, X } from "lucide-react";
 import { LensMark } from "@/components/ui/LensMark";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 /**
  * Convite para instalar a app.
@@ -22,6 +23,7 @@ type BeforeInstallPromptEvent = Event & {
 };
 
 export function InstallPrompt() {
+  const { dictionary: t } = useLocale();
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [visible, setVisible] = useState(false);
 
@@ -79,7 +81,7 @@ export function InstallPrompt() {
       {visible && deferred && (
         <m.div
           role="dialog"
-          aria-label="Instalar a aplicação Digital Lens"
+          aria-label={t.install.ariaLabel}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 24 }}
@@ -88,21 +90,19 @@ export function InstallPrompt() {
         >
           <LensMark size={40} />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-fog-50">Instalar Digital Lens</p>
-            <p className="mt-0.5 text-xs text-fog-400">
-              Acesso rápido, ecrã inteiro e funciona offline.
-            </p>
+            <p className="text-sm font-medium text-fog-50">{t.install.heading}</p>
+            <p className="mt-0.5 text-xs text-fog-400">{t.install.description}</p>
           </div>
           <button
             onClick={install}
             className="flex shrink-0 items-center gap-1.5 rounded-full bg-[linear-gradient(100deg,var(--color-lens-blue-500),var(--color-lens-violet-500))] px-3.5 py-2 text-xs font-semibold text-white"
           >
             <Download size={13} />
-            Instalar
+            {t.install.install}
           </button>
           <button
             onClick={dismiss}
-            aria-label="Agora não"
+            aria-label={t.install.dismiss}
             className="shrink-0 rounded-full p-1.5 text-fog-600 transition-colors hover:text-fog-200"
           >
             <X size={15} />

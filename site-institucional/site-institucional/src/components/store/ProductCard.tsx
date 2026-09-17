@@ -5,10 +5,11 @@ import { m } from "framer-motion";
 import { ArrowUpRight, Check } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { localizedPillarTitle } from "@/lib/i18n/localize";
 import {
   formatKwanzaEquivalent,
   formatPrice,
-  pillarTitle,
   type Product,
 } from "@/lib/products";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ export function ProductCard({
   index = 0,
   showFeatures = true,
 }: ProductCardProps) {
+  const { locale, dictionary: t } = useLocale();
   const { priceRange } = product;
 
   return (
@@ -46,11 +48,11 @@ export function ProductCard({
           {/* `truncate` impede que um pilar de nome longo passe a duas linhas
               e empurre o badge — os cartões da grelha ficariam desalinhados. */}
           <span className="eyebrow min-w-0 truncate text-fog-600">
-            {pillarTitle(product.pillar)}
+            {localizedPillarTitle(product.pillar, locale)}
           </span>
           {product.featured && (
             <span className="shrink-0 rounded-full bg-lens-violet-500/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-lens-violet-400">
-              Popular
+              {t.product.popular}
             </span>
           )}
         </div>
@@ -78,20 +80,20 @@ export function ProductCard({
           </ul>
         )}
 
-        <div className="mt-auto flex flex-col gap-1 border-t border-white/[0.07] pt-5">
+        <div className="mt-auto flex flex-col gap-1 border-t border-hairline-1 pt-5">
           {priceRange === null ? (
             <span className="font-display text-xl font-semibold text-fog-50">
-              Sob orçamento
+              {t.product.onBudget}
             </span>
           ) : (
             <>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-xs text-fog-600">desde</span>
+                <span className="text-xs text-fog-600">{t.product.from}</span>
                 <span className="font-display text-2xl font-semibold text-gradient">
                   {formatPrice(priceRange.min)}
                 </span>
                 {product.billing === "monthly" && (
-                  <span className="text-xs text-fog-600">/ mês</span>
+                  <span className="text-xs text-fog-600">{t.product.perMonth}</span>
                 )}
               </div>
               <span className="font-mono text-xs text-fog-600">
@@ -109,11 +111,11 @@ export function ProductCard({
               size="sm"
               className="w-full"
             >
-              Pedir orçamento
+              {t.product.requestQuote}
             </Button>
           ) : (
             <Button href={`/loja/${product.slug}`} size="sm" className="w-full">
-              {priceRange.min === priceRange.max ? "Ver detalhes" : "Configurar preço"}
+              {priceRange.min === priceRange.max ? t.product.viewDetails : t.product.configurePrice}
             </Button>
           )}
         </div>

@@ -7,26 +7,37 @@ import { ProductCard } from "@/components/store/ProductCard";
 import { PRODUCTS } from "@/lib/products";
 import { SERVICE_PILLARS } from "@/lib/services";
 import { absoluteUrl } from "@/lib/site-config";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
+import { localizePillars, localizeProducts } from "@/lib/i18n/localize";
 
-export const metadata: Metadata = {
-  title: "Loja",
-  description:
-    "Pacotes de desenvolvimento web, IA, marketing digital e locução com âmbito fechado, preço transparente e prazo definido.",
-  alternates: { canonical: "/loja" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return {
+    title: t.pages.store.title,
+    description: t.pages.store.metaDescription,
+    alternates: { canonical: "/loja" },
+  };
+}
 
-const GUARANTEES = [
-  { icon: ShieldCheck, title: "Pagamento seguro", text: "Processado pela Stripe. Nunca guardamos dados do cartão." },
-  { icon: Truck, title: "Arranque em 48h", text: "Kick-off agendado até dois dias úteis após a confirmação." },
-  { icon: Undo2, title: "Âmbito fechado", text: "Preço e entregáveis definidos por escrito antes de começar." },
-];
+const GUARANTEE_ICONS = [ShieldCheck, Truck, Undo2];
 
-export default function LojaPage() {
+export default async function LojaPage() {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const pillars = localizePillars(SERVICE_PILLARS, locale);
+  const products = localizeProducts(PRODUCTS, locale);
+  const GUARANTEES = t.pages.store.guarantees.map((item, index) => ({
+    icon: GUARANTEE_ICONS[index],
+    title: item.title,
+    text: item.text,
+  }));
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: "Loja Digital Lens",
-    itemListElement: PRODUCTS.map((product, index) => ({
+    itemListElement: products.map((product, index) => ({
       "@type": "ListItem",
       position: index + 1,
       url: absoluteUrl(`/loja/${product.slug}`),
@@ -46,14 +57,14 @@ export default function LojaPage() {
         <Container className="relative flex flex-col gap-10">
           <SectionHeading
             as="h1"
-            eyebrow="Loja"
+            eyebrow={t.pages.store.eyebrow}
             title={
               <>
-                Serviços com preço,{" "}
-                <span className="text-gradient">sem reuniões para o saber.</span>
+                {t.pages.store.titleStart}{" "}
+                <span className="text-gradient">{t.pages.store.titleHighlight}</span>
               </>
             }
-            description="Escolha o pacote, pague online e comece esta semana. Projetos maiores continuam a ter orçamento à medida."
+            description={t.pages.store.description}
           />
 
           <ul className="grid gap-4 sm:grid-cols-3">
@@ -73,9 +84,9 @@ export default function LojaPage() {
 
       <section className="pb-24 lg:pb-32">
         <Container className="flex flex-col gap-14">
-          {SERVICE_PILLARS.map((pillar) => {
-            const products = PRODUCTS.filter((product) => product.pillar === pillar.slug);
-            if (products.length === 0) return null;
+          {pillars.map((pillar) => {
+            const pillarProducts = products.filter((product) => product.pillar === pillar.slug);
+            if (pillarProducts.length === 0) return null;
 
             return (
               <div key={pillar.slug} id={pillar.slug} className="scroll-mt-28">
@@ -94,7 +105,7 @@ export default function LojaPage() {
                 </div>
 
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                  {products.map((product, index) => (
+                  {pillarProducts.map((product, index) => (
                     <ProductCard
                       key={product.id}
                       product={product}

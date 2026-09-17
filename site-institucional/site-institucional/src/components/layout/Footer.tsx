@@ -4,24 +4,31 @@ import { LensMark } from "@/components/ui/LensMark";
 import { Container } from "@/components/ui/Container";
 import { SERVICE_PILLARS } from "@/lib/services";
 import { siteConfig } from "@/lib/site-config";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
+import { localizePillars } from "@/lib/i18n/localize";
 
-const AGENCY_LINKS = [
-  { href: "/servicos", label: "Todos os serviços" },
-  { href: "/loja", label: "Loja" },
-  { href: "/#portfolio", label: "Portfólio" },
-  { href: "/contacto", label: "Contacto" },
-];
+export async function Footer() {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const pillars = localizePillars(SERVICE_PILLARS, locale);
 
-const ACCOUNT_LINKS = [
-  { href: "/entrar", label: "Entrar" },
-  { href: "/registar", label: "Criar conta" },
-  { href: "/conta", label: "As minhas encomendas" },
-  { href: "/carrinho", label: "Carrinho" },
-];
+  const AGENCY_LINKS = [
+    { href: "/servicos", label: t.footer.allServices },
+    { href: "/loja", label: t.footer.store },
+    { href: "/#portfolio", label: t.footer.portfolio },
+    { href: "/contacto", label: t.footer.contact },
+  ];
 
-export function Footer() {
+  const ACCOUNT_LINKS = [
+    { href: "/entrar", label: t.footer.login },
+    { href: "/registar", label: t.footer.createAccount },
+    { href: "/conta", label: t.footer.myOrders },
+    { href: "/carrinho", label: t.footer.cart },
+  ];
+
   return (
-    <footer className="relative mt-auto overflow-hidden border-t border-white/[0.08] bg-void-900">
+    <footer className="relative mt-auto overflow-hidden border-t border-hairline-1 bg-void-900">
       {/* Halo discreto que ecoa o gradiente da lente */}
       <div
         aria-hidden
@@ -37,8 +44,7 @@ export function Footer() {
             </span>
           </Link>
           <p className="max-w-xs text-sm leading-relaxed text-fog-400">
-            Desenvolvimento web, inteligência artificial, marketing digital e
-            locução profissional — sob uma só lente.
+            {t.footer.tagline}
           </p>
           <div className="flex flex-col gap-2 text-sm text-fog-400">
             <a
@@ -50,20 +56,20 @@ export function Footer() {
             </a>
             <span className="flex items-center gap-2">
               <MapPin size={15} strokeWidth={1.75} />
-              {siteConfig.address.locality}, Angola
+              {t.footer.localityCountry(siteConfig.address.locality)}
             </span>
           </div>
         </div>
 
-        <FooterColumn title="Serviços">
-          {SERVICE_PILLARS.map((pillar) => (
+        <FooterColumn title={t.footer.servicesColumn}>
+          {pillars.map((pillar) => (
             <FooterLink key={pillar.slug} href={`/servicos/${pillar.slug}`}>
               {pillar.title}
             </FooterLink>
           ))}
         </FooterColumn>
 
-        <FooterColumn title="Agência">
+        <FooterColumn title={t.footer.agencyColumn}>
           {AGENCY_LINKS.map((link) => (
             <FooterLink key={link.href} href={link.href}>
               {link.label}
@@ -71,7 +77,7 @@ export function Footer() {
           ))}
         </FooterColumn>
 
-        <FooterColumn title="Conta" className="col-span-2 md:col-span-4 md:hidden">
+        <FooterColumn title={t.footer.accountColumn} className="col-span-2 md:col-span-4 md:hidden">
           {ACCOUNT_LINKS.map((link) => (
             <FooterLink key={link.href} href={link.href}>
               {link.label}
@@ -80,11 +86,8 @@ export function Footer() {
         </FooterColumn>
       </Container>
 
-      <Container className="relative flex flex-col items-center justify-between gap-3 border-t border-white/[0.07] py-6 text-xs text-fog-600 md:flex-row">
-        <span>
-          © {new Date().getFullYear()} {siteConfig.legalName}. Todos os direitos
-          reservados.
-        </span>
+      <Container className="relative flex flex-col items-center justify-between gap-3 border-t border-hairline-1 py-6 text-xs text-fog-600 md:flex-row">
+        <span>{t.footer.rights(new Date().getFullYear(), siteConfig.legalName)}</span>
         <div className="flex items-center gap-5">
           {ACCOUNT_LINKS.slice(0, 2).map((link) => (
             <Link
