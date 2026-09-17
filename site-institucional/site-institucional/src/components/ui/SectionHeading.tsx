@@ -40,6 +40,15 @@ export function SectionHeading({
           className="h-px w-8 bg-[linear-gradient(90deg,transparent,var(--color-lens-violet-400))]"
         />
         {eyebrow}
+        {/* Traço espelhado à direita — só faz sentido com o eyebrow centrado;
+            em ecrãs largos, onde volta ao alinhamento à esquerda, desaparece. */}
+        <span
+          aria-hidden
+          className={cn(
+            "h-px w-8 bg-[linear-gradient(90deg,var(--color-lens-violet-400),transparent)]",
+            !centered && "sm:hidden"
+          )}
+        />
       </span>
       <Heading
         className={cn(

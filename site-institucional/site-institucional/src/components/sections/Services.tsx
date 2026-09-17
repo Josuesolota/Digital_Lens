@@ -55,27 +55,27 @@ export function Services() {
       if (!track) return;
       // O padding do próprio contentor (`px-*`) faz o scroll-snap descansar
       // num `scrollLeft` igual a esse padding quando o primeiro cartão está
-      // alinhado — não em 0. Comparar contra 0 nunca seria verdadeiro.
+      // alinhado — não em 0. Comparar contra 0 nunca seria verdadeiro. Só é
+      // relevante a partir do `sm`, onde os cartões continuam alinhados ao
+      // início (`snap-start`) — em mobile o cartão fica centrado
+      // (`snap-center`), por isso as setas (só visíveis a partir do `sm`)
+      // não dependem desta conta.
       const start = cardRefs.current[0]?.offsetLeft ?? 0;
       const max = track.scrollWidth - track.clientWidth;
-      const isAtStart = track.scrollLeft <= start + 1;
-      const isAtEnd = track.scrollLeft >= max - 1;
-      setAtStart(isAtStart);
-      setAtEnd(isAtEnd);
+      setAtStart(track.scrollLeft <= start + 1);
+      setAtEnd(track.scrollLeft >= max - 1);
 
-      if (isAtStart) {
-        setActiveIndex(0);
-        return;
-      }
-      if (isAtEnd) {
-        setActiveIndex(SERVICE_PILLARS.length - 1);
-        return;
-      }
+      // O índice activo (para os pontos, só visíveis em mobile) é sempre o
+      // cartão cujo centro está mais próximo do centro do ecrã visível — uma
+      // conta relativa, por isso funciona da mesma forma com `snap-center`
+      // (o deslocamento constante da centragem cancela-se na comparação).
+      const viewportCenter = track.scrollLeft + track.clientWidth / 2;
       let nearest = 0;
       let nearestDistance = Infinity;
       cardRefs.current.forEach((card, index) => {
         if (!card) return;
-        const distance = Math.abs(card.offsetLeft - track.scrollLeft);
+        const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+        const distance = Math.abs(cardCenter - viewportCenter);
         if (distance < nearestDistance) {
           nearestDistance = distance;
           nearest = index;
@@ -224,7 +224,7 @@ export function Services() {
         <div
           ref={trackRef}
           onPointerDown={pauseAutoplayTemporarily}
-          className="-mx-5 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth px-5 pb-2 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10 [&::-webkit-scrollbar]:hidden"
+          className="-mx-5 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth px-[9%] pb-2 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10 [&::-webkit-scrollbar]:hidden"
         >
           {pillars.map((pillar, index) => (
             <m.div
@@ -236,7 +236,7 @@ export function Services() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-80px" }}
               transition={{ duration: 0.55, delay: index * 0.07 }}
-              className="w-[82%] shrink-0 snap-start sm:w-[340px] lg:w-[300px]"
+              className="w-[82%] shrink-0 snap-center sm:w-[340px] sm:snap-start lg:w-[300px]"
             >
               <GlassCard interactive className="group h-full p-7 lg:p-8">
                 <Link
