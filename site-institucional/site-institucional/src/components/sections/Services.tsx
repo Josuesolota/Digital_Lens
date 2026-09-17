@@ -186,7 +186,7 @@ export function Services() {
       onMouseLeave={resumeAutoplay}
     >
       <Container className="flex flex-col gap-10">
-        <div className="flex flex-wrap items-end justify-between gap-6">
+        <div className="flex flex-wrap items-end justify-center gap-6 sm:justify-between">
           <SectionHeading
             eyebrow={t.servicesSection.eyebrow}
             title={

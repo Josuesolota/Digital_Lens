@@ -19,11 +19,18 @@ export function SectionHeading({
   className,
   as: Heading = "h2",
 }: SectionHeadingProps) {
+  // Em ecrãs estreitos, uma coluna de texto à esquerda fica com um "buraco"
+  // de espaço em branco à direita — por omissão centra-se em mobile e volta
+  // ao alinhamento à esquerda a partir do `sm`, onde a largura já sobra para
+  // a leitura em coluna fazer sentido. `align="center"` mantém-se centrado
+  // em todos os tamanhos, para quem precisa mesmo disso (ex.: estados vazios).
+  const centered = align === "center";
+
   return (
     <div
       className={cn(
-        "flex flex-col gap-4",
-        align === "center" && "items-center text-center",
+        "flex flex-col items-center gap-4 text-center",
+        !centered && "sm:items-start sm:text-left",
         className
       )}
     >
@@ -48,7 +55,7 @@ export function SectionHeading({
         <p
           className={cn(
             "text-fog-400 text-balance leading-relaxed",
-            align === "center" ? "max-w-xl" : "max-w-lg"
+            centered ? "max-w-xl" : "max-w-lg"
           )}
         >
           {description}

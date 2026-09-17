@@ -33,7 +33,7 @@ export async function StorePreview() {
           />
           <Link
             href="/loja"
-            className="group flex shrink-0 items-center gap-2 text-sm text-fog-200 transition-colors hover:text-fog-50"
+            className="group flex shrink-0 self-center items-center gap-2 text-sm text-fog-200 transition-colors hover:text-fog-50 sm:self-auto"
           >
             {t.storePreview.viewFullCatalog}
             <ArrowRight

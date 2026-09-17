@@ -37,8 +37,12 @@ export function Hero() {
 
       <Container className="relative">
         <div className="grid items-center gap-14 lg:grid-cols-[1.15fr_1fr]">
-          {/* ── Coluna de texto ── */}
-          <div className="flex flex-col items-start gap-6">
+          {/* ── Coluna de texto ──
+              Em mobile o layout é uma só coluna a toda a largura — centrada
+              fica mais equilibrada do que um bloco de texto colado à
+              esquerda. A partir do `lg` a lente aparece ao lado e a leitura
+              em coluna à esquerda volta a fazer sentido. */}
+          <div className="flex flex-col items-center gap-6 text-center lg:items-start lg:text-left">
             <m.span
               custom={0}
               initial="hidden"
@@ -76,13 +80,18 @@ export function Hero() {
               initial="hidden"
               animate="visible"
               variants={fadeUp}
-              className="flex flex-wrap gap-3 pt-1"
+              className="flex w-full max-w-sm flex-col justify-center gap-3 pt-1 sm:max-w-none sm:flex-row sm:flex-wrap lg:justify-start"
             >
-              <Button href="/contacto" size="lg">
+              <Button href="/contacto" size="lg" className="w-full sm:w-auto">
                 {t.hero.startProject}
                 <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
               </Button>
-              <Button href="/loja" variant="secondary" size="lg">
+              <Button
+                href="/loja"
+                variant="secondary"
+                size="lg"
+                className="w-full border-hairline-3 bg-surface-2 sm:w-auto"
+              >
                 {t.hero.viewStore}
               </Button>
             </m.div>
@@ -92,10 +101,10 @@ export function Hero() {
               initial="hidden"
               animate="visible"
               variants={fadeUp}
-              className="mt-6 flex flex-wrap gap-x-10 gap-y-5 border-t border-hairline-1 pt-7"
+              className="mt-6 flex flex-wrap justify-center gap-x-10 gap-y-5 border-t border-hairline-1 pt-7 lg:justify-start"
             >
               {STATS.map((stat) => (
-                <div key={stat.label} className="flex flex-col gap-1">
+                <div key={stat.label} className="flex flex-col items-center gap-1 lg:items-start">
                   <dt className="sr-only">{stat.label}</dt>
                   <dd className="font-display text-3xl font-semibold text-gradient">
                     {stat.value}
