@@ -54,7 +54,7 @@ const pt = {
     titleHighlight: "precisa de estar.",
     description:
       "Desenvolvimento web, inteligência artificial, marketing digital e locução profissional — da estratégia à execução, sob uma só lente.",
-    startProject: "Iniciar projeto",
+    startProject: "Vamos conversar",
     viewStore: "Ver a loja",
   },
   servicesSection: {
@@ -474,7 +474,7 @@ const en = {
     titleHighlight: "needs to be.",
     description:
       "Web development, artificial intelligence, digital marketing and professional voiceover — from strategy to execution, under one lens.",
-    startProject: "Start a project",
+    startProject: "Let's talk",
     viewStore: "Browse the store",
   },
   servicesSection: {

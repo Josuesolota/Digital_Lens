@@ -1,7 +1,7 @@
 "use client";
 
 import { m, type Variants } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, MessageCircle, Sparkles, Store } from "lucide-react";
 import { LensMark } from "@/components/ui/LensMark";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
@@ -83,6 +83,7 @@ export function Hero() {
               className="flex w-full max-w-sm flex-col justify-center gap-3 pt-1 sm:max-w-none sm:flex-row sm:flex-wrap lg:justify-start"
             >
               <Button href="/contacto" size="lg" className="w-full sm:w-auto">
+                <MessageCircle size={18} strokeWidth={2.25} />
                 {t.hero.startProject}
                 <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
               </Button>
@@ -92,6 +93,7 @@ export function Hero() {
                 size="lg"
                 className="w-full border-hairline-3 bg-surface-2 sm:w-auto"
               >
+                <Store size={18} strokeWidth={2.25} />
                 {t.hero.viewStore}
               </Button>
             </m.div>
