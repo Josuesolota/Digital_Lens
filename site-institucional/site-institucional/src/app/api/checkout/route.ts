@@ -136,7 +136,10 @@ export async function POST(request: Request) {
           product: {
             name: lineDisplayName(line),
             description: line.product.summary,
-            taxCategory: "professional-services",
+            // Categorias como "professional-services" exigem aprovação extra
+            // da Paddle por conta; "standard" é a única que vem sempre
+            // aprovada, em sandbox e ao passar para live.
+            taxCategory: "standard",
           },
         },
       })),
