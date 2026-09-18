@@ -27,20 +27,41 @@ create unique index if not exists users_email_key on users (lower(email));
 -- Encomendas ----------------------------------------------------------------
 -- `items` guarda o carrinho tal como estava no momento da compra (snapshot):
 -- se o preço do catálogo mudar amanhã, a encomenda antiga mantém-se fiel.
+--
+-- `payment_session_id`/`payment_reference` chamavam-se `stripe_session_id`/
+-- `stripe_payment_intent` — renomeados ao trocar o Stripe pela Paddle como
+-- processador. O bloco de migração abaixo (idempotente) renomeia as colunas
+-- em bases de dados já existentes, sem tocar nas encomendas já lá guardadas.
 create table if not exists orders (
-  id                     uuid primary key default gen_random_uuid(),
-  user_id                uuid references users (id) on delete set null,
-  email                  text        not null,
-  stripe_session_id      text        not null unique,
-  stripe_payment_intent  text,
-  status                 text        not null default 'pending'
-                           check (status in ('pending', 'paid', 'failed', 'refunded')),
-  amount_total           integer     not null,
-  currency               text        not null default 'eur',
-  items                  jsonb       not null,
-  created_at             timestamptz not null default now(),
-  updated_at             timestamptz not null default now()
+  id                  uuid primary key default gen_random_uuid(),
+  user_id             uuid references users (id) on delete set null,
+  email               text        not null,
+  payment_session_id  text        not null unique,
+  payment_reference   text,
+  status              text        not null default 'pending'
+                        check (status in ('pending', 'paid', 'failed', 'refunded')),
+  amount_total        integer     not null,
+  currency            text        not null default 'eur',
+  items               jsonb       not null,
+  created_at          timestamptz not null default now(),
+  updated_at          timestamptz not null default now()
 );
+
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_name = 'orders' and column_name = 'stripe_session_id'
+  ) then
+    alter table orders rename column stripe_session_id to payment_session_id;
+  end if;
+  if exists (
+    select 1 from information_schema.columns
+    where table_name = 'orders' and column_name = 'stripe_payment_intent'
+  ) then
+    alter table orders rename column stripe_payment_intent to payment_reference;
+  end if;
+end $$;
 
 create index if not exists orders_user_id_idx on orders (user_id, created_at desc);
 create index if not exists orders_email_idx   on orders (lower(email), created_at desc);

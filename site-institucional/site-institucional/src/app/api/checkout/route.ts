@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/auth";
 import { getProductById, resolvePrice } from "@/lib/products";
-import { stripe, isStripeConfigured } from "@/lib/stripe";
+import { paddle, isPaddleConfigured } from "@/lib/paddle";
 import { isDatabaseConfigured } from "@/lib/db";
 import { createPendingOrder, type OrderItem } from "@/lib/db/queries";
-import { absoluteUrl, siteConfig } from "@/lib/site-config";
+import { siteConfig } from "@/lib/site-config";
 import { rateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { getDictionary } from "@/lib/i18n/dictionary";
@@ -13,7 +13,7 @@ import { getDictionary } from "@/lib/i18n/dictionary";
 export const runtime = "nodejs";
 
 /**
- * Cria a sessão de checkout do Stripe.
+ * Cria a transacção de checkout na Paddle.
  *
  * Regra de ouro: o cliente envia apenas `{ productId, quantity, selection }`.
  * Nome, modo de faturação e — a parte que importa aqui — o **preço**, são
@@ -23,6 +23,10 @@ export const runtime = "nodejs";
  * escolhidas — é a escolha que confiamos, não o total que dela resultaria no
  * cliente. Isto impede que alguém intercepte o pedido e compre um site
  * institucional completo pelo preço da opção mais barata.
+ *
+ * A Paddle não tem um catálogo espelhado com os preços do configurador —
+ * cada transacção usa "non-catalog items": preço e produto vão inline no
+ * pedido, tal como aconteciam com o `price_data` do Stripe.
  */
 
 const configSelectionSchema = z.union([
@@ -53,7 +57,7 @@ export async function POST(request: Request) {
   const locale = await getLocale();
   const t = getDictionary(locale);
 
-  // Criar sessões no Stripe custa dinheiro e quota — limitamos antes de tudo.
+  // Criar transacções na Paddle custa dinheiro e quota — limitamos antes de tudo.
   const limit = await rateLimit("checkout");
   if (!limit.ok) {
     return NextResponse.json(
@@ -62,7 +66,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!isStripeConfigured()) {
+  if (!isPaddleConfigured()) {
     return NextResponse.json(
       { error: t.checkoutApi.paymentsNotConfigured },
       { status: 503 }
@@ -98,7 +102,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // O Stripe não mistura pagamentos únicos e subscrições na mesma sessão.
+  // A Paddle não mistura pagamentos únicos e subscrições na mesma transacção.
   const hasSubscription = resolved.some((line) => line.product.billing === "monthly");
   const hasOneTime = resolved.some((line) => line.product.billing === "one-time");
   if (hasSubscription && hasOneTime) {
@@ -111,41 +115,36 @@ export async function POST(request: Request) {
   const session = await getSession();
 
   try {
-    const checkout = await stripe().checkout.sessions.create({
-      mode: hasSubscription ? "subscription" : "payment",
-      locale,
-      // Pré-preenche o e-mail de quem já tem sessão iniciada.
-      customer_email: session?.user?.email ?? undefined,
-      billing_address_collection: "required",
-      allow_promotion_codes: true,
-      line_items: resolved.map((line) => ({
-        quantity: line.quantity,
-        price_data: {
-          currency: siteConfig.currency.toLowerCase(),
-          unit_amount: line.price,
-          ...(line.product.billing === "monthly"
-            ? { recurring: { interval: "month" as const } }
-            : {}),
-          product_data: {
-            name: lineDisplayName(line),
-            description: line.product.summary,
-          },
-        },
-      })),
-      metadata: {
+    const transaction = await paddle().transactions.create({
+      collectionMode: "automatic",
+      currencyCode: siteConfig.currency,
+      customData: {
         userId: session?.user?.id ?? "",
         productIds: resolved.map((line) => `${line.product.id}x${line.quantity}`).join(","),
       },
-      success_url: absoluteUrl("/checkout/sucesso?session_id={CHECKOUT_SESSION_ID}"),
-      cancel_url: absoluteUrl("/carrinho?cancelado=1"),
+      items: resolved.map((line) => ({
+        quantity: line.quantity,
+        price: {
+          description: lineDisplayName(line),
+          unitPrice: {
+            amount: String(line.price),
+            currencyCode: siteConfig.currency,
+          },
+          ...(line.product.billing === "monthly"
+            ? { billingCycle: { interval: "month" as const, frequency: 1 } }
+            : {}),
+          product: {
+            name: lineDisplayName(line),
+            description: line.product.summary,
+            taxCategory: "professional-services",
+          },
+        },
+      })),
     });
 
-    if (!checkout.url) {
-      throw new Error("O Stripe não devolveu um URL de checkout.");
-    }
-
-    // Regista a encomenda como pendente antes do redireccionamento. Só o
-    // webhook a promove a "paga" — a página de sucesso não é prova de pagamento.
+    // Regista a encomenda como pendente antes de o cliente abrir o overlay de
+    // checkout. Só o webhook a promove a "paga" — a página de sucesso não é
+    // prova de pagamento.
     if (isDatabaseConfigured()) {
       const items: OrderItem[] = resolved.map((line) => ({
         productId: line.product.id,
@@ -157,21 +156,27 @@ export async function POST(request: Request) {
 
       await createPendingOrder({
         userId: session?.user?.id ?? null,
-        email: session?.user?.email ?? checkout.customer_email ?? "",
-        stripeSessionId: checkout.id,
+        // Para quem inicia sessão sabemos o e-mail já aqui; um visitante
+        // anónimo só o indica dentro do overlay da Paddle — o webhook vai
+        // buscá-lo então ao cliente Paddle criado nesse momento.
+        email: session?.user?.email ?? "",
+        paymentSessionId: transaction.id,
         amountTotal: resolved.reduce((total, line) => total + line.price * line.quantity, 0),
         currency: siteConfig.currency.toLowerCase(),
         items,
       }).catch((error) => {
         // Não bloqueamos a compra por falha de escrita: o webhook volta a
-        // tentar e o Stripe mantém o registo canónico da transação.
+        // tentar e a Paddle mantém o registo canónico da transação.
         console.error("[checkout] falha ao registar encomenda pendente:", error);
       });
     }
 
-    return NextResponse.json({ url: checkout.url });
+    return NextResponse.json({
+      transactionId: transaction.id,
+      customerEmail: session?.user?.email ?? null,
+    });
   } catch (error) {
-    console.error("[checkout] falha ao criar sessão Stripe:", error);
+    console.error("[checkout] falha ao criar transacção Paddle:", error);
     return NextResponse.json(
       { error: t.checkoutApi.paymentInitFailed },
       { status: 500 }
@@ -180,7 +185,7 @@ export async function POST(request: Request) {
 }
 
 /**
- * Nome da linha para o Stripe e para o histórico de encomendas: o produto,
+ * Nome da linha para a Paddle e para o histórico de encomendas: o produto,
  * seguido da configuração escolhida quando existe — ex.: "Site Institucional
  * — Até 6 páginas, Design 100% original".
  */

@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-// Depende do `session_id` do Stripe — nunca deve ser servida a partir de cache.
+// Depende do `session_id` da transacção Paddle — nunca deve ser servida a partir de cache.
 export const dynamic = "force-dynamic";
 
 type PageProps = { searchParams: Promise<{ session_id?: string }> };
@@ -29,7 +29,7 @@ export default async function SucessoPage({ searchParams }: PageProps) {
   const t = getDictionary(await getLocale());
 
   // Leitura meramente informativa: a confirmação real do pagamento vem do
-  // webhook do Stripe, nunca desta página (que qualquer pessoa pode abrir).
+  // webhook da Paddle, nunca desta página (que qualquer pessoa pode abrir).
   const order =
     sessionId && isDatabaseConfigured()
       ? await findOrderBySession(sessionId).catch(() => null)

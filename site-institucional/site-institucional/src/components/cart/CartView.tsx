@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { cartLineKey, useCart, type CartLine } from "@/components/cart/cart-context";
+import { useCheckout } from "@/components/cart/use-checkout";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { useLocale } from "@/components/i18n/LocaleProvider";
@@ -25,36 +25,10 @@ export function CartView() {
   const searchParams = useSearchParams();
   const cancelled = searchParams.get("cancelado") === "1";
 
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
-
-  async function checkout() {
-    setError(null);
-    setPending(true);
-    try {
-      const response = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: lines.map((line) => ({
-            productId: line.product.id,
-            quantity: line.quantity,
-            selection: line.selection,
-          })),
-        }),
-      });
-      const data: { url?: string; error?: string } = await response.json();
-      if (!response.ok || !data.url) {
-        setError(data.error ?? t.cart.paymentError);
-        return;
-      }
-      window.location.href = data.url;
-    } catch {
-      setError(t.cart.networkError);
-    } finally {
-      setPending(false);
-    }
-  }
+  const { checkout, error, pending } = useCheckout({
+    paymentError: t.cart.paymentError,
+    networkError: t.cart.networkError,
+  });
 
   // Evita mostrar "carrinho vazio" antes de ler o localStorage.
   if (!ready) {
@@ -124,7 +98,7 @@ export function CartView() {
             </p>
           )}
 
-          <Button type="button" onClick={checkout} disabled={pending} className="w-full">
+          <Button type="button" onClick={() => checkout(lines)} disabled={pending} className="w-full">
             {pending ? t.cart.openingPayment : t.cart.checkout}
           </Button>
           <Link

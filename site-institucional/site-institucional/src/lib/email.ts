@@ -169,7 +169,7 @@ export function sendWelcomeEmail(input: {
   });
 }
 
-/** Recibo enviado ao cliente após confirmação de pagamento pelo Stripe. */
+/** Recibo enviado ao cliente após confirmação de pagamento pela Paddle. */
 export function sendOrderReceipt(input: {
   email: string;
   orderId: string;

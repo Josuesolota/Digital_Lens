@@ -107,9 +107,9 @@ export const PRODUCTS_EN: Record<string, ProductTranslation> = {
     name: "Online Store",
     summary: "Complete e-commerce, from catalog to invoice.",
     description:
-      "Store with catalog, cart and Stripe checkout. Choose the catalog size and extras — the price adjusts in real time to what the store actually needs.",
+      "Store with catalog, cart and secure checkout. Choose the catalog size and extras — the price adjusts in real time to what the store actually needs.",
     features: [
-      "Stripe payments (card, MB Way, Multibanco)",
+      "Card, PayPal, Apple Pay and Google Pay payments",
       "Customer accounts and order history",
       "Automatic transactional emails",
       "Admin panel",

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { AnimatePresence, m } from "framer-motion";
 import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import { cartLineKey, useCart, type CartLine } from "@/components/cart/cart-context";
+import { useCheckout } from "@/components/cart/use-checkout";
 import { Button } from "@/components/ui/Button";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { formatPrice } from "@/lib/products";
@@ -14,8 +15,10 @@ export function CartDrawer() {
   const { dictionary: t } = useLocale();
   const { isOpen, close, lines, remove, setQuantity, oneTimeSubtotal, monthlySubtotal } =
     useCart();
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
+  const { checkout, error, pending } = useCheckout({
+    paymentError: t.cart.paymentError,
+    networkError: t.cart.networkError,
+  });
 
   // Trava o scroll da página enquanto a gaveta está aberta (sincronização com
   // o DOM, não com estado do React — é para isto que os efeitos servem).
@@ -37,35 +40,6 @@ export function CartDrawer() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [isOpen, close]);
-
-  async function checkout() {
-    setError(null);
-    setPending(true);
-    try {
-      const response = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: lines.map((line) => ({
-            productId: line.product.id,
-            quantity: line.quantity,
-            selection: line.selection,
-          })),
-        }),
-      });
-
-      const data: { url?: string; error?: string } = await response.json();
-      if (!response.ok || !data.url) {
-        setError(data.error ?? t.cart.paymentError);
-        return;
-      }
-      window.location.href = data.url;
-    } catch {
-      setError(t.cart.networkError);
-    } finally {
-      setPending(false);
-    }
-  }
 
   return (
     <AnimatePresence>
@@ -155,7 +129,7 @@ export function CartDrawer() {
 
                   <Button
                     type="button"
-                    onClick={checkout}
+                    onClick={() => checkout(lines)}
                     disabled={pending}
                     className="mt-4 w-full"
                   >

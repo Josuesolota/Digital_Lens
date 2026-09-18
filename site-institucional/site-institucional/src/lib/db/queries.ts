@@ -29,7 +29,7 @@ export type OrderRecord = {
   amount_total: number;
   currency: string;
   items: OrderItem[];
-  stripe_session_id: string;
+  payment_session_id: string;
   created_at: string;
 };
 
@@ -72,60 +72,60 @@ export async function createUser(input: {
 
 /**
  * Regista a encomenda ainda como `pending`, antes de o cliente ser redirigido
- * para o Stripe. Só o webhook a promove a `paid` — nunca a página de sucesso,
- * que o utilizador pode abrir sem ter pago.
+ * para o checkout. Só o webhook a promove a `paid` — nunca a página de
+ * sucesso, que o utilizador pode abrir sem ter pago.
  */
 export async function createPendingOrder(input: {
   userId: string | null;
   email: string;
-  stripeSessionId: string;
+  paymentSessionId: string;
   amountTotal: number;
   currency: string;
   items: OrderItem[];
 }): Promise<void> {
   await sql()`
-    insert into orders (user_id, email, stripe_session_id, amount_total, currency, items)
+    insert into orders (user_id, email, payment_session_id, amount_total, currency, items)
     values (
       ${input.userId}::uuid,
       ${input.email},
-      ${input.stripeSessionId},
+      ${input.paymentSessionId},
       ${input.amountTotal},
       ${input.currency},
       ${JSON.stringify(input.items)}::jsonb
     )
-    on conflict (stripe_session_id) do nothing
+    on conflict (payment_session_id) do nothing
   `;
 }
 
-/** Idempotente: o Stripe pode reenviar o mesmo evento várias vezes. */
+/** Idempotente: o processador de pagamento pode reenviar o mesmo evento várias vezes. */
 export async function markOrderPaid(input: {
-  stripeSessionId: string;
-  paymentIntent: string | null;
+  paymentSessionId: string;
+  paymentReference: string | null;
   amountTotal: number | null;
 }): Promise<void> {
   await sql()`
     update orders
-       set status                = 'paid',
-           stripe_payment_intent = coalesce(${input.paymentIntent}, stripe_payment_intent),
-           amount_total          = coalesce(${input.amountTotal}, amount_total),
-           updated_at            = now()
-     where stripe_session_id = ${input.stripeSessionId}
+       set status             = 'paid',
+           payment_reference  = coalesce(${input.paymentReference}, payment_reference),
+           amount_total       = coalesce(${input.amountTotal}, amount_total),
+           updated_at         = now()
+     where payment_session_id = ${input.paymentSessionId}
        and status <> 'paid'
   `;
 }
 
-export async function markOrderFailed(stripeSessionId: string): Promise<void> {
+export async function markOrderFailed(paymentSessionId: string): Promise<void> {
   await sql()`
     update orders
        set status = 'failed', updated_at = now()
-     where stripe_session_id = ${stripeSessionId}
+     where payment_session_id = ${paymentSessionId}
        and status = 'pending'
   `;
 }
 
 export async function findOrdersByUser(userId: string): Promise<OrderRecord[]> {
   return (await sql()`
-    select id, email, status, amount_total, currency, items, stripe_session_id, created_at
+    select id, email, status, amount_total, currency, items, payment_session_id, created_at
     from orders
     where user_id = ${userId}::uuid
     order by created_at desc
@@ -134,12 +134,12 @@ export async function findOrdersByUser(userId: string): Promise<OrderRecord[]> {
 }
 
 export async function findOrderBySession(
-  stripeSessionId: string
+  paymentSessionId: string
 ): Promise<OrderRecord | null> {
   const rows = (await sql()`
-    select id, email, status, amount_total, currency, items, stripe_session_id, created_at
+    select id, email, status, amount_total, currency, items, payment_session_id, created_at
     from orders
-    where stripe_session_id = ${stripeSessionId}
+    where payment_session_id = ${paymentSessionId}
     limit 1
   `) as OrderRecord[];
   return rows[0] ?? null;

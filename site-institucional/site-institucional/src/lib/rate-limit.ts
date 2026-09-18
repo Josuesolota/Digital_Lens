@@ -51,7 +51,7 @@ export const RATE_LIMITS = {
   register: { limit: 5, windowSeconds: 3_600 },
   /** Autenticação: trava força bruta sem incomodar quem erra a password */
   login: { limit: 10, windowSeconds: 900 },
-  /** Checkout: cria sessões no Stripe, que tem os seus próprios limites */
+  /** Checkout: cria transacções na Paddle, que tem os seus próprios limites */
   checkout: { limit: 20, windowSeconds: 3_600 },
 } as const satisfies Record<string, RateLimitRule>;
 

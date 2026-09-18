@@ -17,21 +17,23 @@ export function proxy(request: NextRequest) {
 
   const csp = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://js.stripe.com`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://cdn.paddle.com`,
     // Tailwind e os estilos inline dos gradientes por pilar exigem unsafe-inline
     // em style-src; não há forma de aplicar nonce a atributos `style`.
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' blob: data: https://*.stripe.com",
+    "style-src 'self' 'unsafe-inline' https://cdn.paddle.com",
+    "img-src 'self' blob: data: https://*.paddle.com",
     "font-src 'self' data:",
-    // O checkout é feito por redireccionamento, mas o Stripe.js contacta a API.
-    "connect-src 'self' https://api.stripe.com",
-    "frame-src https://js.stripe.com https://hooks.stripe.com",
+    // O checkout abre num overlay sobre a própria página — o Paddle.js
+    // contacta a API da Paddle e carrega o iframe do checkout de um
+    // subdomínio paddle.com (varia por região/ambiente, daí o wildcard).
+    "connect-src 'self' https://*.paddle.com",
+    "frame-src https://*.paddle.com",
     // PWA: o service worker e o manifest são servidos da própria origem.
     "worker-src 'self' blob:",
     "manifest-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
-    "form-action 'self' https://checkout.stripe.com",
+    "form-action 'self'",
     "frame-ancestors 'none'",
     "upgrade-insecure-requests",
   ].join("; ");
@@ -51,7 +53,7 @@ export const config = {
     /*
      * Aplica a todas as rotas excepto:
      *  - ficheiros estáticos internos do Next
-     *  - /api (respostas JSON não beneficiam de CSP; o webhook do Stripe precisa
+     *  - /api (respostas JSON não beneficiam de CSP; o webhook da Paddle precisa
      *    do corpo intacto e de latência mínima)
      *  - assets do PWA servidos de /public
      */

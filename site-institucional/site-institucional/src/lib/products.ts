@@ -16,8 +16,9 @@
  * corre tanto no cliente (para mostrar o preço em tempo real) como no
  * servidor (`/api/checkout`, que nunca confia no preço que o cliente envia —
  * só nas escolhas, recalculando sempre a partir daqui). Os preços vivem em
- * cêntimos e são enviados para o Stripe como `price_data` inline — não há um
- * catálogo espelhado no dashboard do Stripe, este ficheiro é a única verdade.
+ * cêntimos e são enviados para a Paddle como item "non-catalog" (preço e
+ * produto inline no pedido) — não há um catálogo espelhado no painel da
+ * Paddle, este ficheiro é a única verdade.
  *
  * `priceRange: null` marca serviços sob orçamento: não entram no carrinho,
  * levam o visitante ao formulário de contacto com o serviço pré-seleccionado.
@@ -105,7 +106,7 @@ export type PriceResolution =
  *
  * Determinística e sem efeitos secundários de propósito: é chamada tanto no
  * cliente (mostrar o preço a ajustar-se em tempo real) como no servidor
- * (validar o que o Stripe vai cobrar). Uma escolha inválida ou incompleta
+ * (validar o que a Paddle vai cobrar). Uma escolha inválida ou incompleta
  * devolve `{ ok: false }` em vez de arriscar um preço a menos — quem chama
  * decide o que fazer (desactivar o botão, ignorar a linha do carrinho).
  */
@@ -296,12 +297,12 @@ export const PRODUCTS: readonly Product[] = [
     pillar: "desenvolvimento-web",
     summary: "E-commerce completo, do catálogo à fatura.",
     description:
-      "Loja com catálogo, carrinho e checkout Stripe. Escolha a dimensão do catálogo e os extras — o preço ajusta-se em tempo real ao que a loja precisa mesmo.",
+      "Loja com catálogo, carrinho e checkout seguro. Escolha a dimensão do catálogo e os extras — o preço ajusta-se em tempo real ao que a loja precisa mesmo.",
     priceRange: { min: 32000, max: 320000 },
     billing: "one-time",
     deliveryDays: 35,
     features: [
-      "Pagamentos Stripe (cartão, MB Way, Multibanco)",
+      "Pagamentos por cartão, PayPal, Apple Pay e Google Pay",
       "Contas de cliente e histórico de encomendas",
       "E-mails transacionais automáticos",
       "Painel de administração",
@@ -954,10 +955,10 @@ export function formatPriceRange(range: PriceRange): string {
 
 /**
  * Câmbio de referência para o preço equivalente em Kwanzas mostrado ao lado do
- * preço em euros. A Digital Lens fatura sempre em EUR via Stripe (a conta
- * ainda não tem AOA activado como moeda de apresentação) — este valor é
- * puramente informativo, para o cliente em Angola ter uma ordem de grandeza
- * sem ter de converter de cabeça.
+ * preço em euros. A Digital Lens fatura sempre em EUR via Paddle (o AOA não
+ * está entre as moedas de apresentação suportadas) — este valor é puramente
+ * informativo, para o cliente em Angola ter uma ordem de grandeza sem ter de
+ * converter de cabeça.
  *
  * Cotação de referência, média de mercado a 06/09/2026: 1 EUR ≈ 1065 AOA.
  * Não há atualização automática — rever este número quando o câmbio se

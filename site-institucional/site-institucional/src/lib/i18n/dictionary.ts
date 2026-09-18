@@ -301,7 +301,7 @@ const pt = {
       guarantees: [
         {
           title: "Pagamento seguro",
-          text: "Processado pela Stripe. Nunca guardamos dados do cartão.",
+          text: "Processado pela Paddle. Nunca guardamos dados do cartão.",
         },
         {
           title: "Arranque em 48h",
@@ -715,7 +715,7 @@ const en = {
       guarantees: [
         {
           title: "Secure payment",
-          text: "Processed by Stripe. We never store card data.",
+          text: "Processed by Paddle. We never store card data.",
         },
         {
           title: "Kick-off in 48h",
