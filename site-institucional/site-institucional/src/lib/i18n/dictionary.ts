@@ -38,6 +38,9 @@ const pt = {
     createAccount: "Criar conta",
     myOrders: "As minhas encomendas",
     cart: "Carrinho",
+    terms: "Termos de Serviço",
+    privacy: "Privacidade",
+    refunds: "Reembolsos",
     tagline:
       "Desenvolvimento web, inteligência artificial, marketing digital e locução profissional — sob uma só lente.",
     localityCountry: (locality: string) => `${locality}, Angola`,
@@ -476,6 +479,9 @@ const en = {
     createAccount: "Create account",
     myOrders: "My orders",
     cart: "Cart",
+    terms: "Terms of Service",
+    privacy: "Privacy",
+    refunds: "Refunds",
     tagline:
       "Web development, artificial intelligence, digital marketing and professional voiceover — under one lens.",
     localityCountry: (locality: string) => `${locality}, Angola`,

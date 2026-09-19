@@ -28,6 +28,12 @@ export async function Footer() {
     { href: "/carrinho", label: t.footer.cart },
   ];
 
+  const LEGAL_LINKS = [
+    { href: "/termos", label: t.footer.terms },
+    { href: "/privacidade", label: t.footer.privacy },
+    { href: "/reembolsos", label: t.footer.refunds },
+  ];
+
   return (
     <footer className="relative mt-auto overflow-hidden border-t border-hairline-1 bg-void-900">
       {/* Halo discreto que ecoa o gradiente da lente */}
@@ -89,7 +95,16 @@ export async function Footer() {
 
       <Container className="relative flex flex-col items-center justify-between gap-3 border-t border-hairline-1 py-6 text-xs text-fog-600 md:flex-row">
         <span>{t.footer.rights(new Date().getFullYear(), siteConfig.legalName)}</span>
-        <div className="flex items-center gap-5">
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+          {LEGAL_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="transition-colors hover:text-fog-200"
+            >
+              {link.label}
+            </Link>
+          ))}
           {ACCOUNT_LINKS.slice(0, 2).map((link) => (
             <Link
               key={link.href}
