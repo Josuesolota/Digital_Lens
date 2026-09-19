@@ -210,3 +210,135 @@ button[type="submit"]:disabled {
   font-size: 12px;
   color: var(--faint);
 }
+
+/* ── Admin ──────────────────────────────────────────────────────────── */
+
+.admin-page {
+  max-width: 880px;
+}
+
+.admin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 28px;
+}
+
+.admin-tabs a {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 7px 13px;
+}
+
+.admin-tabs a.active {
+  color: #fff;
+  background: linear-gradient(90deg, var(--blue), var(--violet));
+  border-color: transparent;
+}
+
+.admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.admin-card {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.admin-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.admin-card-header h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  color: var(--ink);
+}
+
+.admin-meta {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--faint);
+}
+
+.status-badge {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 5px 11px;
+  border-radius: 999px;
+  color: var(--status-color);
+  background: color-mix(in srgb, var(--status-color) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--status-color) 40%, transparent);
+}
+
+.admin-fields {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 18px;
+}
+
+.admin-fields dt {
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+  margin-bottom: 3px;
+}
+
+.admin-fields dd {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+
+.admin-fields a {
+  color: var(--blue);
+  word-break: break-all;
+}
+
+.status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--hairline);
+}
+
+.status-btn {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.status-btn.active {
+  color: #fff;
+  background: linear-gradient(90deg, var(--blue), var(--violet));
+  border-color: transparent;
+}
+
+.status-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
