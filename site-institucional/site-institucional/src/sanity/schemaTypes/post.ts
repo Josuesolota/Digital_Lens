@@ -82,9 +82,13 @@ export const post = defineType({
                   {
                     name: "href",
                     title: "URL",
+                    description: "Externo (https://…) ou interno, a começar por / (ex.: /loja)",
                     type: "url",
                     validation: (rule) =>
-                      rule.uri({ scheme: ["http", "https", "mailto"] }),
+                      rule.uri({
+                        scheme: ["http", "https", "mailto"],
+                        allowRelative: true,
+                      }),
                   },
                 ],
               },
