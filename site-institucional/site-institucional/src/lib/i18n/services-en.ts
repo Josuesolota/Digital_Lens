@@ -39,11 +39,6 @@ export const SERVICE_PILLARS_EN: Record<string, ServicePillarTranslation> = {
           "Complete e-commerce with catalog, cart, payments, invoicing and logistics integration.",
       },
       {
-        title: "Financial trading platforms",
-        description:
-          "Trading dashboards, real-time charts and integration with broker APIs — including Deriv.",
-      },
-      {
         title: "Blogs",
         description:
           "Editorial engines optimized for organic search, with a simple publishing flow for your team.",
@@ -71,11 +66,6 @@ export const SERVICE_PILLARS_EN: Record<string, ServicePillarTranslation> = {
         title: "Task automation",
         description:
           "Flows that connect your tools and eliminate repetitive manual work, with logging and human oversight.",
-      },
-      {
-        title: "AI content production",
-        description:
-          "Articles, captions, descriptions and creatives generated at scale — always reviewed and aligned with your brand voice.",
       },
       {
         title: "AI agents",

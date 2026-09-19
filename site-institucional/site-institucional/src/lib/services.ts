@@ -60,11 +60,6 @@ export const SERVICE_PILLARS: readonly ServicePillar[] = [
           "E-commerce completo com catálogo, carrinho, pagamentos, faturação e integração logística.",
       },
       {
-        title: "Plataformas de negociação financeira",
-        description:
-          "Dashboards de trading, gráficos em tempo real e integração com APIs de corretoras — incluindo a Deriv.",
-      },
-      {
         title: "Blogs",
         description:
           "Motores editoriais optimizados para pesquisa orgânica, com fluxo de publicação simples para a sua equipa.",
@@ -95,11 +90,6 @@ export const SERVICE_PILLARS: readonly ServicePillar[] = [
         title: "Automação de tarefas",
         description:
           "Fluxos que ligam as suas ferramentas e eliminam trabalho manual repetitivo, com registo e supervisão humana.",
-      },
-      {
-        title: "Produção de conteúdo com IA",
-        description:
-          "Artigos, legendas, descrições e criativos gerados à escala — sempre revistos e alinhados com a sua voz de marca.",
       },
       {
         title: "Agentes de IA",

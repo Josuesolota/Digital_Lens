@@ -144,60 +144,6 @@ export const PRODUCTS_EN: Record<string, ProductTranslation> = {
       },
     },
   },
-  "web-trading": {
-    name: "Financial Trading Platform",
-    summary: "Trading dashboards with real-time data.",
-    description:
-      "Platforms connected to broker APIs — including Deriv — with real-time charts and strategy automation. Choose the integration complexity; projects above the top of the range always go through a custom quote.",
-    features: [
-      "Broker API integration (e.g., Deriv)",
-      "Real-time charts and quotes",
-      "Risk management and per-account limits",
-    ],
-    groups: {
-      integracao: {
-        title: "Integrated brokers",
-        options: {
-          uma: "1 broker (e.g., Deriv)",
-          multiplas: "Multiple brokers",
-        },
-      },
-      automacao: {
-        title: "Strategy automation",
-        options: {
-          nenhuma: "No automation (view only)",
-          basica: "Basic automation (simple rules)",
-          avancada: "Advanced strategy engine",
-        },
-      },
-      extras: {
-        title: "Extras",
-        options: {
-          risco: "Risk management and per-account limits",
-          auditoria: "Audit trail and operation logging",
-          alertas: "Real-time alerts (push/SMS)",
-          multiutilizador: "Multi-user panel with permissions",
-          backtesting: "Historical backtesting",
-          expresso: "Express turnaround",
-        },
-      },
-    },
-  },
-  "web-trading-manutencao": {
-    name: "Monthly Maintenance — Financial Platform",
-    summary: "Monitoring, updates and ongoing support for the platform.",
-    description:
-      "Monthly maintenance plan for the trading platform: uptime monitoring, security updates and priority support.",
-    features: ["24/7 uptime monitoring", "Security updates", "Priority support"],
-    levels: [
-      { label: "Basic", description: "Monitoring and security updates." },
-      {
-        label: "Advanced",
-        description: "Basic + priority support and monthly performance report.",
-      },
-    ],
-  },
-
   // ── Artificial Intelligence ───────────────────────────────────────────
   "ia-chatbot": {
     name: "AI Customer Service Chatbot",
@@ -267,34 +213,6 @@ export const PRODUCTS_EN: Record<string, ProductTranslation> = {
         description: "Mapping, integration, execution dashboard and team training.",
       },
     ],
-  },
-  "ia-conteudo": {
-    name: "AI Content Production",
-    summary: "Content at scale, in your brand voice.",
-    description:
-      "Monthly AI-assisted production package, always reviewed by a human editor before publishing. Choose the monthly volume and extras.",
-    features: ["Always reviewed by a human editor", "Brand voice guide", "Monthly editorial calendar"],
-    groups: {
-      volume: {
-        title: "Monthly volume",
-        options: {
-          "4-artigos": "4 articles/month",
-          "8-artigos": "8 articles/month",
-          "16-artigos": "16 articles/month",
-          "30-artigos": "30 articles/month (daily production)",
-        },
-      },
-      extras: {
-        title: "Extras",
-        options: {
-          legendas: "Social media captions",
-          descricoes: "Product descriptions (up to 50)",
-          revisao: "Premium editorial review",
-          idiomas: "Additional languages (PT-BR, EN)",
-          "voz-marca": "Custom brand voice guide",
-        },
-      },
-    },
   },
   "ia-agente": {
     name: "Custom AI Agent",
