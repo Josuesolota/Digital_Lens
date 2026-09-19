@@ -21,12 +21,15 @@ export function proxy(request: NextRequest) {
     // Tailwind e os estilos inline dos gradientes por pilar exigem unsafe-inline
     // em style-src; não há forma de aplicar nonce a atributos `style`.
     "style-src 'self' 'unsafe-inline' https://cdn.paddle.com",
-    "img-src 'self' blob: data: https://*.paddle.com",
+    // `cdn.sanity.io` serve as imagens dos artigos do blog.
+    "img-src 'self' blob: data: https://*.paddle.com https://cdn.sanity.io",
     "font-src 'self' data:",
     // O checkout abre num overlay sobre a própria página — o Paddle.js
     // contacta a API da Paddle e carrega o iframe do checkout de um
     // subdomínio paddle.com (varia por região/ambiente, daí o wildcard).
-    "connect-src 'self' https://*.paddle.com",
+    // O Studio da Sanity (/studio) fala com a API do projecto em tempo real,
+    // incluindo por WebSocket.
+    "connect-src 'self' https://*.paddle.com https://*.sanity.io wss://*.sanity.io",
     "frame-src https://*.paddle.com",
     // PWA: o service worker e o manifest são servidos da própria origem.
     "worker-src 'self' blob:",
@@ -55,8 +58,13 @@ export const config = {
      *  - ficheiros estáticos internos do Next
      *  - /api (respostas JSON não beneficiam de CSP; o webhook da Paddle precisa
      *    do corpo intacto e de latência mínima)
+     *  - /studio (o Studio da Sanity usa o seu próprio carregador de módulos,
+     *    que não sabe propagar o nosso nonce por pedido aos scripts que
+     *    injecta — sob `strict-dynamic` ficariam todos bloqueados. O Studio já
+     *    fica protegido pela autenticação da própria Sanity; os headers de
+     *    segurança gerais em `next.config.ts` continuam a aplicar-se-lhe)
      *  - assets do PWA servidos de /public
      */
-    "/((?!api/|_next/static|_next/image|favicon.ico|icons/|sw.js|manifest.webmanifest|apple-touch-icon.png|og-image.png).*)",
+    "/((?!api/|studio|_next/static|_next/image|favicon.ico|icons/|sw.js|manifest.webmanifest|apple-touch-icon.png|og-image.png).*)",
   ],
 };

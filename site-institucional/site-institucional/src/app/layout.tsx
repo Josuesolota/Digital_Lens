@@ -4,9 +4,8 @@ import { headers } from "next/headers";
 import { getSession } from "@/auth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { SiteChrome } from "@/components/layout/SiteChrome";
 import { Providers } from "@/components/providers";
-import { InstallPrompt } from "@/components/pwa/InstallPrompt";
-import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { siteConfig, absoluteUrl } from "@/lib/site-config";
 import "./globals.css";
@@ -171,11 +170,12 @@ export default async function RootLayout({
       </head>
       <body className="flex min-h-full flex-col bg-void-950 text-fog-50 antialiased">
         <Providers initialLocale={locale}>
-          <Navbar userName={session?.user?.name ?? null} />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <InstallPrompt />
-          <ServiceWorkerRegistration />
+          <SiteChrome
+            navbar={<Navbar userName={session?.user?.name ?? null} />}
+            footer={<Footer />}
+          >
+            {children}
+          </SiteChrome>
         </Providers>
       </body>
     </html>

@@ -30,6 +30,7 @@ export function Navbar({ userName }: NavbarProps) {
   const LINKS = [
     { href: "/servicos", label: t.nav.services, hasMenu: true },
     { href: "/loja", label: t.nav.store, hasMenu: false },
+    { href: "/blog", label: t.nav.blog, hasMenu: false },
     { href: "/#portfolio", label: t.nav.portfolio, hasMenu: false },
     { href: "/contacto", label: t.nav.contact, hasMenu: false },
   ];
@@ -276,6 +277,7 @@ export function Navbar({ userName }: NavbarProps) {
               <m.div variants={itemVariants} className="flex flex-col">
                 {[
                   { href: "/loja", label: t.nav.store },
+                  { href: "/blog", label: t.nav.blog },
                   { href: "/#portfolio", label: t.nav.portfolio },
                   { href: "/contacto", label: t.nav.contact },
                   { href: userName ? "/conta" : "/entrar", label: userName ? t.nav.myAccount : t.nav.login },

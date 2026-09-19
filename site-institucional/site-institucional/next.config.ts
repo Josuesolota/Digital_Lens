@@ -11,9 +11,8 @@ const nextConfig: NextConfig = {
     // AVIF primeiro (mais leve), WebP como fallback — aplicado automaticamente
     // por next/image assim que forem adicionadas imagens reais ao projeto.
     formats: ["image/avif", "image/webp"],
-    // Adicionar aqui os domínios de onde as imagens (CMS, Cloudinary, etc.)
-    // vierem a ser servidas, ex.:
-    // remotePatterns: [{ protocol: "https", hostname: "cdn.exemplo.com" }],
+    // As imagens dos artigos do blog vêm do CDN da Sanity.
+    remotePatterns: [{ protocol: "https", hostname: "cdn.sanity.io" }],
   },
 
   async headers() {

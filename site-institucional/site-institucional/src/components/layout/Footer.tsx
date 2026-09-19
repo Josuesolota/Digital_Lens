@@ -16,6 +16,7 @@ export async function Footer() {
   const AGENCY_LINKS = [
     { href: "/servicos", label: t.footer.allServices },
     { href: "/loja", label: t.footer.store },
+    { href: "/blog", label: t.footer.blog },
     { href: "/#portfolio", label: t.footer.portfolio },
     { href: "/contacto", label: t.footer.contact },
   ];

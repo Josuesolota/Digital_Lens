@@ -15,6 +15,7 @@ const pt = {
   nav: {
     services: "Serviços",
     store: "Loja",
+    blog: "Blog",
     portfolio: "Portfólio",
     contact: "Contacto",
     homeAriaLabel: "Digital Lens — página inicial",
@@ -30,6 +31,7 @@ const pt = {
   footer: {
     allServices: "Todos os serviços",
     store: "Loja",
+    blog: "Blog",
     portfolio: "Portfólio",
     contact: "Contacto",
     login: "Entrar",
@@ -331,6 +333,21 @@ const pt = {
       metaDescription: "Conte-nos o seu projeto. Respondemos em até 1 dia útil com um plano concreto.",
       requestPrefix: "Pedido: ",
     },
+    blog: {
+      title: "Blog",
+      metaDescription:
+        "Artigos sobre desenvolvimento web, inteligência artificial, marketing digital e locução — pela Digital Lens.",
+      eyebrow: "Blog",
+      titleStart: "Ideias e",
+      titleHighlight: "aprendizagens.",
+      description: "Notas práticas sobre os temas que trabalhamos todos os dias — sem enrolação.",
+      emptyTitle: "Ainda não há artigos publicados",
+      emptyDescription: "Estamos a preparar os primeiros artigos. Volte em breve.",
+      readMore: "Ler artigo",
+    },
+    blogPost: {
+      backToBlog: "Voltar ao blog",
+    },
     cartPage: {
       title: "Carrinho",
       metaDescription: "Reveja os serviços seleccionados antes de finalizar a compra.",
@@ -436,6 +453,7 @@ const en = {
   nav: {
     services: "Services",
     store: "Store",
+    blog: "Blog",
     portfolio: "Portfolio",
     contact: "Contact",
     homeAriaLabel: "Digital Lens — homepage",
@@ -451,6 +469,7 @@ const en = {
   footer: {
     allServices: "All services",
     store: "Store",
+    blog: "Blog",
     portfolio: "Portfolio",
     contact: "Contact",
     login: "Sign in",
@@ -744,6 +763,21 @@ const en = {
       title: "Contact",
       metaDescription: "Tell us about your project. We reply within 1 business day with a concrete plan.",
       requestPrefix: "Request: ",
+    },
+    blog: {
+      title: "Blog",
+      metaDescription:
+        "Articles on web development, artificial intelligence, digital marketing and voiceover — by Digital Lens.",
+      eyebrow: "Blog",
+      titleStart: "Ideas and",
+      titleHighlight: "lessons learned.",
+      description: "Practical notes on the topics we work on every day — no fluff.",
+      emptyTitle: "No articles published yet",
+      emptyDescription: "We're working on the first articles. Check back soon.",
+      readMore: "Read article",
+    },
+    blogPost: {
+      backToBlog: "Back to blog",
     },
     cartPage: {
       title: "Cart",
